@@ -1,0 +1,44 @@
+{
+  "name": "ExpertShare",
+  "type": "object",
+  "properties": {
+    "observation_id": {
+      "type": "string"
+    },
+    "expert_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "date_shared": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "observation_id",
+    "expert_email"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

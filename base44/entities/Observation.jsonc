@@ -1,0 +1,111 @@
+{
+  "name": "Observation",
+  "type": "object",
+  "properties": {
+    "observation_type": {
+      "type": "string",
+      "enum": [
+        "image",
+        "audio"
+      ]
+    },
+    "media_url": {
+      "type": "string"
+    },
+    "exact_lat": {
+      "type": "number"
+    },
+    "exact_long": {
+      "type": "number"
+    },
+    "public_lat": {
+      "type": "number"
+    },
+    "public_long": {
+      "type": "number"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "species_name": {
+      "type": "string"
+    },
+    "common_name": {
+      "type": "string"
+    },
+    "establishment_means": {
+      "type": "string",
+      "enum": [
+        "native",
+        "introduced",
+        "endemic",
+        "unknown"
+      ]
+    },
+    "is_invasive": {
+      "type": "boolean",
+      "default": false
+    },
+    "confidence_score": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "unverified",
+        "flagged_for_review"
+      ],
+      "default": "unverified"
+    },
+    "flag_reason": {
+      "type": "string"
+    },
+    "sync_status": {
+      "type": "string",
+      "enum": [
+        "synced",
+        "offline_pending"
+      ],
+      "default": "synced"
+    },
+    "user_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "observation_type",
+    "media_url"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

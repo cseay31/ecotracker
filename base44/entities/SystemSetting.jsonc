@@ -1,0 +1,42 @@
+{
+  "name": "SystemSetting",
+  "type": "object",
+  "properties": {
+    "feature_flags": {
+      "type": "object",
+      "default": {}
+    },
+    "maintenance_mode": {
+      "type": "boolean",
+      "default": false
+    },
+    "maintenance_message": {
+      "type": "string"
+    },
+    "rate_limit_per_min": {
+      "type": "number",
+      "default": 30
+    },
+    "top_alert_banner": {
+      "type": "string"
+    }
+  },
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "InvasiveWatchlist",
+  "type": "object",
+  "properties": {
+    "species_name": {
+      "type": "string"
+    },
+    "common_name": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "action_tips": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "species_name"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
