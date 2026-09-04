@@ -80,31 +80,54 @@ export async function secondaryImageIdentification(base44, file_url) {
   }
 }
 
-// Bioacoustic identification via a self-hosted BirdNET/Perch server (no secondary model).
-// The endpoint URL is configured by the admin in app settings. Until it is set,
-// audio observations are still stored but identified as "Unknown".
+// Bioacoustic identification via a self-hosted BirdNET-Analyzer server (free, open source,
+// no secondary model). The admin runs `python -m birdnet_analyzer.server` and sets the
+// server base URL in app settings. Protocol: POST {base}/analyze with multipart fields
+// `audio` (file) + `meta` (JSON string of lat/lon/sensitivity/...). Response:
+// {"msg":"success","results":[["Turdus_migratorius", 0.93], ...]}. Until a server is
+// configured, audio observations are still stored but identified as "Unknown".
 export async function bioacousticIdentification(base44, file_url, lat, long, endpoint) {
   if (!endpoint) {
-    return { species_name: 'Unknown', common_name: '', confidence_score: 0, degraded: true };
+    return { species_name: 'Unknown', common_name: '', confidence_score: 0, degraded: true, error: 'endpoint_not_configured' };
   }
   try {
     const audioRes = await fetch(file_url);
     const blob = await audioRes.blob();
+    const fname = (file_url.split('/').pop() || 'recording.wav').split('?')[0] || 'recording.wav';
+    const meta = {
+      lat: lat != null ? lat : -1,
+      lon: long != null ? long : -1,
+      week: -1,
+      overlap: 0.0,
+      sensitivity: 1.0,
+      sf_thresh: 0.03,
+      pmode: 'avg',
+      num_results: 5,
+      save: false,
+    };
     const form = new FormData();
-    form.append('audio', blob, 'recording.wav');
-    if (lat != null) form.append('lat', String(lat));
-    if (long != null) form.append('lng', String(long));
-    const res = await fetch(endpoint, { method: 'POST', body: form });
+    form.append('audio', blob, fname);
+    form.append('meta', JSON.stringify(meta));
+    const url = endpoint.endsWith('/analyze') ? endpoint : endpoint.replace(/\/$/, '') + '/analyze';
+    const res = await fetch(url, { method: 'POST', body: form });
     const data = await res.json().catch(() => ({}));
-    const top = data.results && data.results[0];
+    const results = Array.isArray(data.results) ? data.results : [];
+    if (results.length === 0) {
+      const msg = (data && data.msg) || 'no_results';
+      return { species_name: 'Unknown', common_name: '', confidence_score: 0, degraded: true, error: msg };
+    }
+    const top = results[0];
+    const speciesRaw = Array.isArray(top) ? top[0] : (top.species || top.name || '');
+    const score = Array.isArray(top) ? top[1] : (top.confidence || top.score || 0);
+    const species_name = String(speciesRaw || 'Unknown').replace(/_/g, ' ').trim() || 'Unknown';
     return {
-      species_name: data.species_name || data.species || (top && top.species_name) || 'Unknown',
-      common_name: data.common_name || data.common || (top && top.common_name) || '',
-      confidence_score: Math.round(data.confidence || data.confidence_score || (top && top.confidence) || 0),
+      species_name,
+      common_name: '',
+      confidence_score: Math.round(Math.min(1, Math.max(0, Number(score) || 0)) * 100),
       degraded: false,
     };
   } catch (e) {
-    return { species_name: 'Unknown', common_name: '', confidence_score: 0, degraded: true };
+    return { species_name: 'Unknown', common_name: '', confidence_score: 0, degraded: true, error: String(e) };
   }
 }
 
@@ -185,7 +208,12 @@ export async function runAudioIdentification(base44, file_url, lat, long, endpoi
     is_invasive,
     confidence_score,
     status,
-    flag_reason: bio.degraded && species_name === 'Unknown' ? 'Bioacoustics endpoint not configured' : null,
+    flag_reason:
+      bio.degraded && species_name === 'Unknown'
+        ? bio.error === 'endpoint_not_configured'
+          ? 'BirdNET endpoint not configured'
+          : `BirdNET identification failed: ${bio.error || 'unknown'}`
+        : null,
     points,
   };
 }

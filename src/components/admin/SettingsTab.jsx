@@ -99,10 +99,10 @@ export default function SettingsTab() {
       </Card>
 
       <Card className="p-4 space-y-3">
-        <h3 className="font-semibold">🤖 Bioacoustics endpoint</h3>
-        <p className="text-sm text-muted-foreground">Self-hosted BirdNET/Perch server URL for audio species ID. Leave empty until your server is running — audio observations are still saved, identified as "Unknown".</p>
-        <Input value={draft.bioacoustics_endpoint || ''} onChange={(e) => setDraft({ ...draft, bioacoustics_endpoint: e.target.value })} placeholder="https://my-birdnet.example.com/predict" />
-        <Button onClick={() => save({ bioacoustics_endpoint: draft.bioacoustics_endpoint }, 'Updated bioacoustics endpoint')}>Save endpoint</Button>
+        <h3 className="font-semibold">🤖 BirdNET server</h3>
+        <p className="text-sm text-muted-foreground">Base URL of your self-hosted <a href="https://github.com/birdnet-team/BirdNET-Analyzer" target="_blank" rel="noreferrer" className="underline">BirdNET-Analyzer</a> server (free, open source). Run it with <code className="bg-muted px-1 rounded">python -m birdnet_analyzer.server --port 8080</code>, then enter e.g. <code className="bg-muted px-1 rounded">http://your-server:8080</code>. Leave empty until it's running — audio observations are still saved, identified as "Unknown".</p>
+        <Input value={draft.bioacoustics_endpoint || ''} onChange={(e) => setDraft({ ...draft, bioacoustics_endpoint: e.target.value })} placeholder="http://your-server:8080" />
+        <Button onClick={() => save({ bioacoustics_endpoint: draft.bioacoustics_endpoint }, 'Updated BirdNET endpoint')}>Save endpoint</Button>
       </Card>
 
       <Dialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
