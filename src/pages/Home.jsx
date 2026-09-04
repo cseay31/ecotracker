@@ -19,12 +19,22 @@ export default function Home() {
   const [recent, setRecent] = useState([]);
   const [bbox, setBbox] = useState(null);
   const [focus, setFocus] = useState(null);
+  const [search, setSearch] = useState('');
   const [contactOpen, setContactOpen] = useState(false);
   const [denied, setDenied] = useState(false);
 
   useEffect(() => {
     if (location.state?.denied) setDenied(true);
   }, [location]);
+
+  const matchesSearch = (o) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      (o.common_name || '').toLowerCase().includes(q) ||
+      (o.species_name || '').toLowerCase().includes(q)
+    );
+  };
 
   useEffect(() => {
     (async () => {
@@ -74,13 +84,19 @@ export default function Home() {
       )}
       <div className="flex-1 p-4 space-y-4">
         <div className="h-[55vh] min-h-[320px]">
-          <MapView observations={observations} onBoundsChange={setBbox} focus={focus} />
+          <MapView
+            observations={observations.filter(matchesSearch)}
+            onBoundsChange={setBbox}
+            focus={focus}
+            searchQuery={search}
+            onSearchChange={setSearch}
+          />
         </div>
         <div>
           <h2 className="font-semibold text-lg mb-2">Recent observations</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {recent.length === 0 && <p className="text-sm text-muted-foreground col-span-full">No observations yet. Be the first to scan!</p>}
-            {recent.map((o) => {
+            {recent.filter(matchesSearch).map((o) => {
               const canZoom = o.public_lat != null && o.public_long != null;
               return (
                 <Card
