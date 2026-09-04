@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Search, LocateFixed, X } from 'lucide-react';
+import { Search, LocateFixed, X, MapPin, Loader2 } from 'lucide-react';
 
 function pinIcon(emoji, invasive) {
   const color = invasive ? '#dc2626' : '#16a34a';
@@ -59,6 +59,24 @@ export default function MapView({
   const mapRef = useRef(null);
   const [userPos, setUserPos] = useState(null);
   const [locating, setLocating] = useState(false);
+  const [addr, setAddr] = useState('');
+  const [geoLoading, setGeoLoading] = useState(false);
+
+  const geocode = (e) => {
+    e.preventDefault();
+    const q = addr.trim();
+    if (!q) return;
+    setGeoLoading(true);
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data[0]) {
+          const ll = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          mapRef.current?.flyTo(ll, 14, { duration: 0.8 });
+        }
+      })
+      .finally(() => setGeoLoading(false));
+  };
 
   const locate = () => {
     if (!navigator.geolocation) return;
@@ -98,6 +116,18 @@ export default function MapView({
             </button>
           )}
         </div>
+        <form onSubmit={geocode} className="relative mt-2">
+          <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <input
+            value={addr}
+            onChange={(e) => setAddr(e.target.value)}
+            placeholder="Search address or zipcode..."
+            className="w-full pl-8 pr-8 py-2 text-sm rounded-md border bg-background/95 backdrop-blur shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+          {geoLoading && (
+            <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+          )}
+        </form>
       </div>
 
       {/* Locate-me overlay */}
