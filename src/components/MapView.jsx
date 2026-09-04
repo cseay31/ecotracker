@@ -44,8 +44,10 @@ export default function MapView({ observations = [], onBoundsChange, focus, heig
   return (
     <MapContainer center={[20, 0]} zoom={3} scrollWheelZoom style={{ height, width: '100%' }} className="rounded-xl overflow-hidden z-0">
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_2sh6_1_dbddc1154c3584ee2750a645"
         attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+        subdomains="abcd"
+        maxZoom={20}
       />
       <TileLayer
         url="https://api.inaturalist.org/v1/points/{z}/{x}/{y}.png"
