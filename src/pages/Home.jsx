@@ -44,7 +44,8 @@ export default function Home() {
       } catch (e) {}
       try {
         const ann = await base44.entities.Announcement.filter({ is_active: true, show_as_popup: true });
-        if (ann.length > 0) setPopup(ann[0]);
+        const seenId = localStorage.getItem('ecotracker.announcement.seen');
+        if (ann.length > 0 && ann[0].id !== seenId) setPopup(ann[0]);
       } catch (e) {}
       try {
         const rec = await base44.entities.Observation.list('-timestamp', 10);
@@ -123,7 +124,13 @@ export default function Home() {
       >
         <MessageSquare className="h-6 w-6" />
       </Button>
-      <AnnouncementPopup announcement={popup} onClose={() => setPopup(null)} />
+      <AnnouncementPopup
+        announcement={popup}
+        onClose={() => {
+          if (popup?.id) localStorage.setItem('ecotracker.announcement.seen', popup.id);
+          setPopup(null);
+        }}
+      />
       <ContactAdminDialog open={contactOpen} onOpenChange={setContactOpen} />
     </AppShell>
   );
