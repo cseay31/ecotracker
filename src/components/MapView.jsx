@@ -220,6 +220,25 @@ export default function MapView({
           <span className="inline-block h-3 w-3 rounded-full bg-[#2563eb] border-2 border-white" />
           <span>Your location</span>
         </div>
+        <div className="border-t pt-1.5 mt-1">
+          <div className="font-semibold text-[11px] uppercase tracking-wide text-muted-foreground mb-1">iNaturalist pins</div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-full bg-[#8FB36D] border border-white shadow-sm" />
+            <span>Plants</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-full bg-[#659CEF] border border-white shadow-sm" />
+            <span>Animals (vertebrates)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-full bg-[#FF8D5D] border border-white shadow-sm" />
+            <span>Insects & invertebrates</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-full bg-[#F462A7] border border-white shadow-sm" />
+            <span>Fungi & lichens</span>
+          </div>
+        </div>
       </div>
 
       <MapContainer
