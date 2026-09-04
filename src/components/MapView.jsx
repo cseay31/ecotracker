@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -30,15 +30,29 @@ function BoundsHandler({ onBoundsChange }) {
   return null;
 }
 
-export default function MapView({ observations = [], onBoundsChange, height = '100%' }) {
+function FocusHandler({ focus }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!focus || focus.lat == null || focus.long == null) return;
+    map.flyTo([focus.lat, focus.long], focus.zoom || 14, { duration: 0.8 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus]);
+  return null;
+}
+
+export default function MapView({ observations = [], onBoundsChange, focus, height = '100%' }) {
   return (
     <MapContainer center={[20, 0]} zoom={3} scrollWheelZoom style={{ height, width: '100%' }} className="rounded-xl overflow-hidden z-0">
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+      <TileLayer
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+      />
       <TileLayer
         url="https://api.inaturalist.org/v1/points/{z}/{x}/{y}.png"
         opacity={0.7}
         attribution="iNaturalist"
       />
+      <FocusHandler focus={focus} />
       <BoundsHandler onBoundsChange={onBoundsChange} />
       {observations
         .filter((o) => o.public_lat != null && o.public_long != null)

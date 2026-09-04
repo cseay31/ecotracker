@@ -18,6 +18,7 @@ export default function Home() {
   const [observations, setObservations] = useState([]);
   const [recent, setRecent] = useState([]);
   const [bbox, setBbox] = useState(null);
+  const [focus, setFocus] = useState(null);
   const [contactOpen, setContactOpen] = useState(false);
   const [denied, setDenied] = useState(false);
 
@@ -73,22 +74,30 @@ export default function Home() {
       )}
       <div className="flex-1 p-4 space-y-4">
         <div className="h-[55vh] min-h-[320px]">
-          <MapView observations={observations} onBoundsChange={setBbox} />
+          <MapView observations={observations} onBoundsChange={setBbox} focus={focus} />
         </div>
         <div>
           <h2 className="font-semibold text-lg mb-2">Recent observations</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {recent.length === 0 && <p className="text-sm text-muted-foreground col-span-full">No observations yet. Be the first to scan!</p>}
-            {recent.map((o) => (
-              <Card key={o.id} className="p-3 space-y-1">
-                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                  {o.observation_type === 'audio' ? '🔊 Audio' : '🌿 Photo'}
-                </div>
-                <div className="font-medium text-sm leading-tight">{o.common_name || o.species_name || 'Unknown'}</div>
-                <div className="text-xs text-muted-foreground">Confidence: {o.confidence_score ?? 0}%</div>
-                {o.is_invasive && <div className="text-xs text-red-600 font-medium">⚠ Invasive</div>}
-              </Card>
-            ))}
+            {recent.map((o) => {
+              const canZoom = o.public_lat != null && o.public_long != null;
+              return (
+                <Card
+                  key={o.id}
+                  onClick={() => canZoom && setFocus({ lat: o.public_lat, long: o.public_long, zoom: 14, nonce: Date.now() })}
+                  className={`p-3 space-y-1 ${canZoom ? 'cursor-pointer hover:ring-2 hover:ring-primary/40 transition' : ''}`}
+                >
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    {o.observation_type === 'audio' ? '🔊 Audio' : '🌿 Photo'}
+                    {canZoom && <span className="ml-auto">📍 Zoom</span>}
+                  </div>
+                  <div className="font-medium text-sm leading-tight">{o.common_name || o.species_name || 'Unknown'}</div>
+                  <div className="text-xs text-muted-foreground">Confidence: {o.confidence_score ?? 0}%</div>
+                  {o.is_invasive && <div className="text-xs text-red-600 font-medium">⚠ Invasive</div>}
+                </Card>
+              );
+            })}
           </div>
         </div>
       </div>
