@@ -98,6 +98,13 @@ export default function SettingsTab() {
         <Button onClick={() => save({ rate_limit_per_min: draft.rate_limit_per_min }, 'Updated rate limit')}>Save rate limit</Button>
       </Card>
 
+      <Card className="p-4 space-y-3">
+        <h3 className="font-semibold">🤖 Bioacoustics endpoint</h3>
+        <p className="text-sm text-muted-foreground">Self-hosted BirdNET/Perch server URL for audio species ID. Leave empty until your server is running — audio observations are still saved, identified as "Unknown".</p>
+        <Input value={draft.bioacoustics_endpoint || ''} onChange={(e) => setDraft({ ...draft, bioacoustics_endpoint: e.target.value })} placeholder="https://my-birdnet.example.com/predict" />
+        <Button onClick={() => save({ bioacoustics_endpoint: draft.bioacoustics_endpoint }, 'Updated bioacoustics endpoint')}>Save endpoint</Button>
+      </Card>
+
       <Dialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <DialogContent>
           <DialogHeader>

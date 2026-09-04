@@ -17,7 +17,12 @@ export default async function (req) {
       return Response.json({ error: 'file_url, exact_lat and exact_long are required' }, { status: 400 });
     }
 
-    const identification = await runAudioIdentification(base44, file_url, exact_lat, exact_long);
+    let endpoint = '';
+    try {
+      const settings = await base44.asServiceRole.entities.SystemSetting.list(1);
+      endpoint = (settings[0] && settings[0].bioacoustics_endpoint) || '';
+    } catch (e) {}
+    const identification = await runAudioIdentification(base44, file_url, exact_lat, exact_long, endpoint);
     const record = buildObservationRecord({
       observation_type: 'audio',
       media_url: file_url,

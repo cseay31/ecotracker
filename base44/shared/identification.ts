@@ -1,5 +1,4 @@
 // Shared identification + privacy helpers used across backend functions.
-import { secrets } from 'base44:runtime';
 
 export function fuzzCoordinates(lat, long, privateProperty) {
   if (privateProperty) return { public_lat: null, public_long: null };
@@ -81,11 +80,11 @@ export async function secondaryImageIdentification(base44, file_url) {
   }
 }
 
-// Bioacoustic identification. Uses a bioacoustics API key if configured,
-// otherwise degrades gracefully to "Unknown" so the observation is still stored.
-export async function bioacousticIdentification(base44, file_url, lat, long) {
-  const key = secrets.get('BIOACOUSTICS_API_KEY');
-  if (!key) {
+// Bioacoustic identification via a self-hosted BirdNET/Perch server (no secondary model).
+// The endpoint URL is configured by the admin in app settings. Until it is set,
+// audio observations are still stored but identified as "Unknown".
+export async function bioacousticIdentification(base44, file_url, lat, long, endpoint) {
+  if (!endpoint) {
     return { species_name: 'Unknown', common_name: '', confidence_score: 0, degraded: true };
   }
   try {
@@ -95,16 +94,13 @@ export async function bioacousticIdentification(base44, file_url, lat, long) {
     form.append('audio', blob, 'recording.wav');
     if (lat != null) form.append('lat', String(lat));
     if (long != null) form.append('lng', String(long));
-    const res = await fetch('https://api.birdnet.bioacoustics.ai/v1/identify', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${key}` },
-      body: form,
-    });
-    const data = await res.json();
+    const res = await fetch(endpoint, { method: 'POST', body: form });
+    const data = await res.json().catch(() => ({}));
+    const top = data.results && data.results[0];
     return {
-      species_name: data.species_name || 'Unknown',
-      common_name: data.common_name || '',
-      confidence_score: Math.round(data.confidence || 0),
+      species_name: data.species_name || data.species || (top && top.species_name) || 'Unknown',
+      common_name: data.common_name || data.common || (top && top.common_name) || '',
+      confidence_score: Math.round(data.confidence || data.confidence_score || (top && top.confidence) || 0),
       degraded: false,
     };
   } catch (e) {
@@ -168,8 +164,8 @@ export async function runImageIdentification(base44, file_url, lat, long) {
 }
 
 // Full audio identification flow.
-export async function runAudioIdentification(base44, file_url, lat, long) {
-  const bio = await bioacousticIdentification(base44, file_url, lat, long);
+export async function runAudioIdentification(base44, file_url, lat, long, endpoint) {
+  const bio = await bioacousticIdentification(base44, file_url, lat, long, endpoint);
   let species_name = bio.species_name;
   let common_name = bio.common_name;
   let confidence_score = bio.confidence_score;
@@ -189,7 +185,7 @@ export async function runAudioIdentification(base44, file_url, lat, long) {
     is_invasive,
     confidence_score,
     status,
-    flag_reason: bio.degraded && species_name === 'Unknown' ? 'Bioacoustics API key not configured' : null,
+    flag_reason: bio.degraded && species_name === 'Unknown' ? 'Bioacoustics endpoint not configured' : null,
     points,
   };
 }

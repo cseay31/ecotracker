@@ -19,6 +19,9 @@
     },
     "top_alert_banner": {
       "type": "string"
+    },
+    "bioacoustics_endpoint": {
+      "type": "string"
     }
   },
   "rls": {
