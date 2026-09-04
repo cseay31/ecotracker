@@ -67,7 +67,7 @@ export default function MapView({
     const q = addr.trim();
     if (!q) return;
     setGeoLoading(true);
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`)
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q=${encodeURIComponent(q)}`)
       .then((r) => r.json())
       .then((data) => {
         if (data && data[0]) {
