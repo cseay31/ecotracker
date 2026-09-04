@@ -48,6 +48,19 @@ function FocusHandler({ focus }) {
   return null;
 }
 
+const inatIcon = L.divIcon({
+  className: 'ecotracker-inat',
+  html: `<div style="background:#0ea5e9;width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center"><span style="font-size:13px">🔬</span></div>`,
+  iconSize: [26, 26],
+  iconAnchor: [13, 13],
+  popupAnchor: [0, -12],
+});
+
+function ClickHandler({ onClick }) {
+  useMapEvents({ click: (e) => onClick(e.latlng) });
+  return null;
+}
+
 export default function MapView({
   observations = [],
   onBoundsChange,
@@ -57,10 +70,40 @@ export default function MapView({
   height = '100%',
 }) {
   const mapRef = useRef(null);
+  const inatMarkerRef = useRef(null);
   const [userPos, setUserPos] = useState(null);
   const [locating, setLocating] = useState(false);
   const [addr, setAddr] = useState('');
   const [geoLoading, setGeoLoading] = useState(false);
+  const [inat, setInat] = useState(null);
+
+  const handleMapClick = (latlng) => {
+    setInat({ lat: latlng.lat, lng: latlng.lng, loading: true, obs: null });
+    fetch(
+      `https://api.inaturalist.org/v1/observations?lat=${latlng.lat}&lng=${latlng.lng}&radius=5&photos=true&per_page=1&order_by=votes&quality_grade=research`
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        const o = data?.results?.[0];
+        setInat((s) => ({
+          ...s,
+          loading: false,
+          obs: o
+            ? {
+                image: o.photos?.[0]?.url?.replace('square', 'medium'),
+                common: o.taxon?.preferred_common_name,
+                sci: o.taxon?.name,
+                url: o.uri,
+              }
+            : null,
+        }));
+      })
+      .catch(() => setInat((s) => ({ ...s, loading: false })));
+  };
+
+  useEffect(() => {
+    if (inat && inatMarkerRef.current) inatMarkerRef.current.openPopup();
+  }, [inat]);
 
   const geocode = (e) => {
     e.preventDefault();
@@ -185,6 +228,33 @@ export default function MapView({
         />
         <FocusHandler focus={focus} />
         <BoundsHandler onBoundsChange={onBoundsChange} />
+        <ClickHandler onClick={handleMapClick} />
+        {inat && (
+          <Marker ref={inatMarkerRef} position={[inat.lat, inat.lng]} icon={inatIcon}>
+            <Popup>
+              {inat.loading ? (
+                <div className="text-sm py-1 px-1">Fetching nearby iNaturalist observation…</div>
+              ) : inat.obs ? (
+                <div className="text-sm space-y-1 min-w-[180px]">
+                  {inat.obs.image && (
+                    <img
+                      src={inat.obs.image}
+                      alt={inat.obs.common || inat.obs.sci || 'observation'}
+                      className="w-full h-32 object-cover rounded-md"
+                    />
+                  )}
+                  {inat.obs.common && <div className="font-semibold">{inat.obs.common}</div>}
+                  {inat.obs.sci && <div className="text-xs italic text-muted-foreground">{inat.obs.sci}</div>}
+                  <a href={inat.obs.url} target="_blank" rel="noreferrer" className="text-xs text-sky-600 underline">
+                    View on iNaturalist
+                  </a>
+                </div>
+              ) : (
+                <div className="text-sm py-1 px-1">No nearby iNaturalist observation found.</div>
+              )}
+            </Popup>
+          </Marker>
+        )}
         {userPos && (
           <Marker position={userPos} icon={userIcon}>
             <Popup>You are here</Popup>
