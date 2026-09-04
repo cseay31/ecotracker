@@ -111,6 +111,29 @@ export default function MapView({
         <LocateFixed className={`h-5 w-5 ${locating ? 'animate-pulse' : ''}`} />
       </button>
 
+      {/* Legend overlay */}
+      <div className="absolute left-3 bottom-3 z-[1000] bg-background/95 backdrop-blur border rounded-md shadow-md px-3 py-2 text-xs space-y-1.5">
+        <div className="font-semibold text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Legend</div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-[#16a34a] border border-white shadow-sm" />
+          <span>Native / non-invasive</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-[#dc2626] border border-white shadow-sm" />
+          <span>Invasive species</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span>🌿 Photo observation</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span>🔊 Audio observation</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-[#2563eb] border-2 border-white" />
+          <span>Your location</span>
+        </div>
+      </div>
+
       <MapContainer
         ref={mapRef}
         center={[20, 0]}
