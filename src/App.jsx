@@ -6,6 +6,18 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
+import { Navigate } from 'react-router-dom';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import Onboarding from '@/pages/Onboarding';
+import Home from '@/pages/Home';
+import Scanner from '@/pages/Scanner';
+import Profile from '@/pages/Profile';
+import Admin from '@/pages/Admin';
+import AdminRoute from '@/components/AdminRoute';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -34,7 +46,21 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/onboarding" element={
+        <ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />}>
+          <Onboarding />
+        </ProtectedRoute>
+      } />
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/scanner" element={<Scanner />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
