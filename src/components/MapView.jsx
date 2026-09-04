@@ -80,20 +80,35 @@ export default function MapView({
   const handleMapClick = (latlng) => {
     setInat({ lat: latlng.lat, lng: latlng.lng, loading: true, obs: null });
     fetch(
-      `https://api.inaturalist.org/v1/observations?lat=${latlng.lat}&lng=${latlng.lng}&radius=5&photos=true&per_page=1&order_by=votes&quality_grade=research`
+      `https://api.inaturalist.org/v1/observations?lat=${latlng.lat}&lng=${latlng.lng}&radius=10&photos=true&per_page=50&quality_grade=research`
     )
       .then((r) => r.json())
       .then((data) => {
-        const o = data?.results?.[0];
+        let best = null;
+        let bestDist = Infinity;
+        for (const o of data?.results || []) {
+          if (!o.location) continue;
+          const [ola, olo] = o.location.split(',').map(Number);
+          const d = Math.acos(
+            Math.sin(latlng.lat * Math.PI / 180) * Math.sin(ola * Math.PI / 180) +
+              Math.cos(latlng.lat * Math.PI / 180) * Math.cos(ola * Math.PI / 180) *
+                Math.cos((olo - latlng.lng) * Math.PI / 180)
+          ) * 6371;
+          if (d < bestDist) {
+            bestDist = d;
+            best = o;
+          }
+        }
         setInat((s) => ({
           ...s,
           loading: false,
-          obs: o
+          obs: best
             ? {
-                image: o.photos?.[0]?.url?.replace('square', 'medium'),
-                common: o.taxon?.preferred_common_name,
-                sci: o.taxon?.name,
-                url: o.uri,
+                image: best.photos?.[0]?.url?.replace('square', 'medium'),
+                common: best.taxon?.preferred_common_name,
+                sci: best.taxon?.name,
+                url: best.uri,
+                distKm: +bestDist.toFixed(2),
               }
             : null,
         }));
@@ -245,6 +260,9 @@ export default function MapView({
                   )}
                   {inat.obs.common && <div className="font-semibold">{inat.obs.common}</div>}
                   {inat.obs.sci && <div className="text-xs italic text-muted-foreground">{inat.obs.sci}</div>}
+                  {inat.obs.distKm != null && (
+                    <div className="text-[11px] text-muted-foreground">~{inat.obs.distKm} km from click</div>
+                  )}
                   <a href={inat.obs.url} target="_blank" rel="noreferrer" className="text-xs text-sky-600 underline">
                     View on iNaturalist
                   </a>
