@@ -343,10 +343,11 @@ export default function MapView({
         className="rounded-xl overflow-hidden z-0"
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=cb1_2sh6_1_dbddc1154c3584ee2750a645"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=cb1_2sh6_1_dbddc1154c3584ee2750a645"
           attribution="&copy; OpenStreetMap contributors &copy; CARTO"
           subdomains="abcd"
           maxZoom={20}
+          className="bio-tiles"
         />
         {showInat && (
           <TileLayer

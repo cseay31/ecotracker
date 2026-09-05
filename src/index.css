@@ -242,6 +242,13 @@
 .bio-input::placeholder { color: #a7f3d0; }
 .bio-input:focus { box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.35); }
 
+.bio-tiles {
+  filter: sepia(1) hue-rotate(55deg) saturate(1.6) brightness(0.82) contrast(1.08);
+}
+.bio-app .leaflet-container {
+  background: #022c22;
+}
+
 @keyframes bio-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes bio-pulse { 50% { opacity: 0.35; transform: scale(0.75); } }
 @keyframes bio-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
