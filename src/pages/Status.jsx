@@ -26,14 +26,19 @@ export default function Status() {
           </a>
         </div>
 
-        <div className="bio-map-wrap bg-[#022c22]" style={{ minHeight: '60vh' }}>
-          <iframe
-            src={STATUS_URL}
-            title="EcoTracker system status"
-            className="w-full h-full min-h-[60vh] rounded-2xl"
-            style={{ border: 0 }}
-            loading="lazy"
-          />
+        <div className="bio-overlay rounded-2xl p-8 text-center space-y-5">
+          <p className="text-teal-100/90 max-w-md mx-auto">
+            UptimeRobot's status pages can't be embedded directly. Open the live
+            status dashboard to view uptime history and incidents for EcoTracker.
+          </p>
+          <a
+            href={STATUS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="bio-contact rounded-md px-6 py-3 text-sm font-semibold inline-flex items-center gap-2"
+          >
+            Open UptimeRobot status <ExternalLink className="h-4 w-4" />
+          </a>
         </div>
       </div>
     </AppShell>
