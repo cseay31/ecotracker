@@ -20,6 +20,7 @@ export default function Scanner() {
   const [recording, setRecording] = useState(false);
   const mediaRef = useRef(null);
   const chunksRef = useRef([]);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -27,6 +28,19 @@ export default function Scanner() {
       (pos) => setCoords({ lat: pos.coords.latitude, long: pos.coords.longitude }),
       () => toast.error('Could not get GPS location.')
     );
+  }, []);
+
+  // Stop any active recording/stream if the user navigates away mid-capture
+  useEffect(() => {
+    return () => {
+      const mr = mediaRef.current;
+      if (mr && mr.state !== 'inactive') {
+        try {
+          mr.stream.getTracks().forEach((t) => t.stop());
+          mr.stop();
+        } catch (e) {}
+      }
+    };
   }, []);
 
   // Flush offline queue when back online
@@ -102,6 +116,7 @@ export default function Scanner() {
 
   function stopRecording() {
     if (mediaRef.current) {
+      setProcessing(true);
       mediaRef.current.stop();
       mediaRef.current.stream.getTracks().forEach((t) => t.stop());
     }
@@ -135,21 +150,28 @@ export default function Scanner() {
         </Card>
 
         {mode === 'image' ? (
-          <label className="block">
+          <>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               capture="environment"
               className="hidden"
-              onChange={(e) => e.target.files[0] && processFile(e.target.files[0], 'image')}
+              onChange={(e) => {
+                const f = e.target.files[0];
+                e.target.value = '';
+                if (f) processFile(f, 'image');
+              }}
             />
-            <Button className="w-full h-20 text-lg" disabled={processing || !coords} asChild>
-              <span className="flex items-center gap-2">
-                {processing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Camera className="h-6 w-6" />}
-                {processing ? 'Identifying...' : 'Capture photo'}
-              </span>
+            <Button
+              className="w-full h-20 text-lg"
+              disabled={processing || !coords}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {processing ? <Loader2 className="h-6 w-6 animate-spin" /> : <Camera className="h-6 w-6" />}
+              {processing ? 'Identifying...' : 'Capture photo'}
             </Button>
-          </label>
+          </>
         ) : (
           <Button className="w-full h-20 text-lg" disabled={processing || !coords} onClick={recording ? stopRecording : startRecording}>
             {recording ? <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-red-500 animate-pulse" /> Stop recording</span> : processing ? <span className="flex items-center gap-2"><Loader2 className="h-6 w-6 animate-spin" /> Identifying...</span> : <span className="flex items-center gap-2"><Mic className="h-6 w-6" /> Record audio</span>}
