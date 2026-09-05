@@ -1,5 +1,26 @@
 // Shared identification + privacy helpers used across backend functions.
 
+// Only allow outbound fetches to trusted file-storage hosts. Prevents SSRF via
+// caller-controlled file_url values pointing at internal IPs / metadata endpoints.
+const ALLOWED_FILE_HOST_SUFFIXES = ['.base44.com', '.wixstatic.com'];
+
+export function assertSafeFileUrl(fileUrl) {
+  let url;
+  try {
+    url = new URL(fileUrl);
+  } catch {
+    throw new Error('invalid file_url');
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error('unsupported file_url scheme');
+  }
+  const host = url.hostname.toLowerCase();
+  if (!ALLOWED_FILE_HOST_SUFFIXES.some((s) => host.endsWith(s))) {
+    throw new Error('untrusted file_url host');
+  }
+  return fileUrl;
+}
+
 export function fuzzCoordinates(lat, long, privateProperty) {
   if (privateProperty) return { public_lat: null, public_long: null };
   return {
@@ -24,7 +45,7 @@ export async function checkInvasive(base44, speciesName, establishmentMeans) {
 
 // Primary location-tuned iNaturalist Computer Vision identification.
 export async function primaryImageIdentification(file_url, lat, long) {
-  const imgRes = await fetch(file_url);
+  const imgRes = await fetch(assertSafeFileUrl(file_url));
   const blob = await imgRes.blob();
   const form = new FormData();
   form.append('image', blob, 'observation.jpg');
@@ -91,7 +112,7 @@ export async function bioacousticIdentification(base44, file_url, lat, long, end
     return { species_name: 'Unknown', common_name: '', confidence_score: 0, degraded: true, error: 'endpoint_not_configured' };
   }
   try {
-    const audioRes = await fetch(file_url);
+    const audioRes = await fetch(assertSafeFileUrl(file_url));
     const blob = await audioRes.blob();
     const fname = (file_url.split('/').pop() || 'recording.wav').split('?')[0] || 'recording.wav';
     const meta = {

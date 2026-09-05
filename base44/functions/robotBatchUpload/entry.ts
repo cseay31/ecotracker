@@ -10,8 +10,13 @@ const ROBOT_USER_ID = 'ROBOT_UNIT_01';
 
 export default async function (req) {
   try {
-    // Webhook-style endpoint. NOTE: secure with a shared ROBOT_TOKEN secret
-    // (validated against the Authorization header) before production use.
+    // Webhook-style endpoint secured by a shared ROBOT_TOKEN secret. Callers must
+    // send `Authorization: Bearer <ROBOT_TOKEN>`; requests without a match are rejected.
+    const expectedToken = process.env.ROBOT_TOKEN;
+    const authHeader = req.headers.get('authorization') || '';
+    if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
+      return Response.json({ error: 'unauthorized' }, { status: 401 });
+    }
     const base44 = createClientFromRequest(req);
     const body = await req.json();
     const items = Array.isArray(body.items) ? body.items : [];
