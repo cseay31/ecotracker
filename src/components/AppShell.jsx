@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Leaf, ScanLine, User, MapPin, Shield, Activity } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import Footer from '@/components/Footer';
 
 export default function AppShell({ title, children }) {
   const loc = useLocation();
@@ -34,7 +35,7 @@ export default function AppShell({ title, children }) {
           </Link>
           <span className="bio-dot" />
         </header>
-        <main className="flex-1 flex flex-col">{children}</main>
+        <main className="flex-1 flex flex-col">{children}<Footer /></main>
         <nav className="bio-nav sticky bottom-0 z-30 flex">
           {nav.map((n) => (
             <Link key={n.to} to={n.to} className={`bio-navitem ${n.active ? 'is-active' : ''}`}>

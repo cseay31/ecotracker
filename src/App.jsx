@@ -18,6 +18,8 @@ import Scanner from '@/pages/Scanner';
 import Profile from '@/pages/Profile';
 import Admin from '@/pages/Admin';
 import Status from '@/pages/Status';
+import About from '@/pages/About';
+import Contact from '@/pages/Contact';
 import AdminRoute from '@/components/AdminRoute';
 // Add page imports here
 
@@ -51,6 +53,8 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
       <Route path="/onboarding" element={
         <ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />}>
           <Onboarding />
