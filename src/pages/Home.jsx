@@ -22,6 +22,7 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [contactOpen, setContactOpen] = useState(false);
   const [denied, setDenied] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (location.state?.denied) setDenied(true);
@@ -41,6 +42,10 @@ export default function Home() {
       try {
         const settingsList = await base44.entities.SystemSetting.list(1);
         setSettings(settingsList[0] || null);
+      } catch (e) {}
+      try {
+        const u = await base44.auth.me();
+        setIsAdmin(u?.role === 'admin');
       } catch (e) {}
       try {
         const ann = await base44.entities.Announcement.filter({ is_active: true, show_as_popup: true });
@@ -91,6 +96,7 @@ export default function Home() {
             focus={focus}
             searchQuery={search}
             onSearchChange={setSearch}
+            isAdmin={isAdmin}
           />
         </div>
         <div>

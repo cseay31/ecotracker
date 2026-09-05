@@ -68,6 +68,7 @@ export default function MapView({
   searchQuery = '',
   onSearchChange,
   height = '100%',
+  isAdmin = false,
 }) {
   const mapRef = useRef(null);
   const inatMarkerRef = useRef(null);
@@ -77,43 +78,88 @@ export default function MapView({
   const [geoLoading, setGeoLoading] = useState(false);
   const [inat, setInat] = useState(null);
 
-  const handleMapClick = (latlng) => {
-    setInat({ lat: latlng.lat, lng: latlng.lng, loading: true, obs: null });
-    fetch(
-      `https://api.inaturalist.org/v1/observations?lat=${latlng.lat}&lng=${latlng.lng}&radius=10&photos=true&per_page=50&quality_grade=research`
-    )
-      .then((r) => r.json())
-      .then((data) => {
-        let best = null;
-        let bestDist = Infinity;
-        for (const o of data?.results || []) {
-          if (!o.location) continue;
-          const [ola, olo] = o.location.split(',').map(Number);
-          const d = Math.acos(
-            Math.sin(latlng.lat * Math.PI / 180) * Math.sin(ola * Math.PI / 180) +
-              Math.cos(latlng.lat * Math.PI / 180) * Math.cos(ola * Math.PI / 180) *
-                Math.cos((olo - latlng.lng) * Math.PI / 180)
-          ) * 6371;
-          if (d < bestDist) {
-            bestDist = d;
-            best = o;
-          }
+  const haversineKm = (la, lo, bla, blo) =>
+    Math.acos(
+      Math.sin(la * Math.PI / 180) * Math.sin(bla * Math.PI / 180) +
+        Math.cos(la * Math.PI / 180) * Math.cos(bla * Math.PI / 180) *
+          Math.cos((blo - lo) * Math.PI / 180)
+    ) * 6371;
+
+  // Primary: look up the exact observation rendered at the clicked tile cell via the
+  // iNaturalist UTFGrid — this maps the visible dot to its real observation, instead of
+  // just the nearest one in a radius search.
+  const lookupByUtfGrid = async (latlng, z) => {
+    const n = Math.pow(2, z);
+    const wx = ((latlng.lng + 180) / 360) * n;
+    const tx = Math.floor(wx);
+    const px = Math.floor((wx - tx) * 256);
+    const latRad = (latlng.lat * Math.PI) / 180;
+    const wy = ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n;
+    const ty = Math.floor(wy);
+    const py = Math.floor((wy - ty) * 256);
+    const gres = await fetch(`https://api.inaturalist.org/v1/points/${z}/${tx}/${ty}.grid.json`);
+    const gdata = await gres.json();
+    const row = gdata?.grid?.[Math.min(63, Math.floor(py / 4))];
+    const cell = row ? [...row][Math.min(63, Math.floor(px / 4))] : null;
+    const obsId = cell ? gdata.keys?.[cell.codePointAt(0) - 32] : null;
+    if (!obsId) return null;
+    const dres = await fetch(`https://api.inaturalist.org/v1/observations/${obsId}`);
+    const ddata = await dres.json();
+    const o = ddata?.results?.[0];
+    if (!o) return null;
+    return {
+      image: o.photos?.[0]?.url?.replace('square', 'medium'),
+      common: o.taxon?.preferred_common_name,
+      sci: o.taxon?.name,
+      url: o.uri,
+      distKm: 0,
+    };
+  };
+
+  // Fallback: nearest research-grade observation to the click point.
+  const lookupNearest = async (latlng) => {
+    const r = await fetch(
+      `https://api.inaturalist.org/v1/observations?lat=${latlng.lat}&lng=${latlng.lng}&radius=5&per_page=200&quality_grade=research`
+    );
+    const data = await r.json();
+    let best = null;
+    let bestDist = Infinity;
+    for (const o of data?.results || []) {
+      if (!o.location) continue;
+      const [ola, olo] = o.location.split(',').map(Number);
+      const d = haversineKm(latlng.lat, latlng.lng, ola, olo);
+      if (d < bestDist) {
+        bestDist = d;
+        best = o;
+      }
+    }
+    return best
+      ? {
+          image: best.photos?.[0]?.url?.replace('square', 'medium'),
+          common: best.taxon?.preferred_common_name,
+          sci: best.taxon?.name,
+          url: best.uri,
+          distKm: +bestDist.toFixed(2),
         }
-        setInat((s) => ({
-          ...s,
-          loading: false,
-          obs: best
-            ? {
-                image: best.photos?.[0]?.url?.replace('square', 'medium'),
-                common: best.taxon?.preferred_common_name,
-                sci: best.taxon?.name,
-                url: best.uri,
-                distKm: +bestDist.toFixed(2),
-              }
-            : null,
-        }));
-      })
-      .catch(() => setInat((s) => ({ ...s, loading: false })));
+      : null;
+  };
+
+  const handleMapClick = async (latlng) => {
+    setInat({ lat: latlng.lat, lng: latlng.lng, loading: true, obs: null });
+    const finish = (obs) => setInat((s) => ({ ...s, loading: false, obs }));
+    try {
+      const z = mapRef.current?.getZoom() ?? 10;
+      const exact = await lookupByUtfGrid(latlng, z);
+      if (exact) return finish(exact);
+      const near = await lookupNearest(latlng);
+      finish(near);
+    } catch (e) {
+      try {
+        finish(await lookupNearest(latlng));
+      } catch (e2) {
+        finish(null);
+      }
+    }
   };
 
   useEffect(() => {
@@ -298,11 +344,14 @@ export default function MapView({
           </Marker>
         )}
         {observations
-          .filter((o) => o.public_lat != null && o.public_long != null)
-          .map((o) => (
+          .filter((o) => (isAdmin ? o.exact_lat != null || o.public_lat != null : o.public_lat != null))
+          .map((o) => {
+            const lat = isAdmin && o.exact_lat != null ? o.exact_lat : o.public_lat;
+            const lng = isAdmin && o.exact_long != null ? o.exact_long : o.public_long;
+            return (
             <Marker
               key={o.id}
-              position={[o.public_lat, o.public_long]}
+              position={[lat, lng]}
               icon={pinIcon(o.observation_type === 'audio' ? '🔊' : '🌿', o.is_invasive)}
             >
               <Popup>
@@ -313,12 +362,14 @@ export default function MapView({
                   )}
                   <div>Confidence: {o.confidence_score ?? 0}%</div>
                   <div className="capitalize">Status: {o.status?.replace(/_/g, ' ')}</div>
+                  {isAdmin && <div className="text-xs text-sky-600">📍 Exact location (admin)</div>}
                   {o.is_invasive && <div className="text-red-600 font-medium">⚠ Invasive species</div>}
                   {o.observation_type === 'audio' && <div className="text-xs">🔊 Audio observation</div>}
                 </div>
               </Popup>
             </Marker>
-          ))}
+            );
+          })}
       </MapContainer>
     </div>
   );

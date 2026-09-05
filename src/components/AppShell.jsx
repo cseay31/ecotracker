@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Leaf, ScanLine, User, MapPin } from 'lucide-react';
+import { Leaf, ScanLine, User, MapPin, Shield } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 export default function AppShell({ title, children }) {
   const loc = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    base44.auth.me()
+      .then((u) => setIsAdmin(u?.role === 'admin'))
+      .catch(() => setIsAdmin(false));
+  }, []);
   const nav = [
     { to: '/', label: 'Map', icon: MapPin, active: loc.pathname === '/' },
     { to: '/scanner', label: 'Scan', icon: ScanLine, active: loc.pathname === '/scanner' },
     { to: '/profile', label: 'Profile', icon: User, active: loc.pathname === '/profile' },
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield, active: loc.pathname === '/admin' }] : []),
   ];
   return (
     <div className="min-h-screen bg-background flex flex-col">
