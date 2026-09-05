@@ -249,6 +249,40 @@
   background: #022c22;
 }
 
+/* ===== Admin — Bio Neon theme ===== */
+.bio-admin {
+  --background: 170 90% 9%;
+  --foreground: 160 60% 96%;
+  --card: 170 55% 13%;
+  --card-foreground: 160 60% 96%;
+  --popover: 170 55% 13%;
+  --popover-foreground: 160 60% 96%;
+  --primary: 160 84% 39%;
+  --primary-foreground: 170 90% 9%;
+  --secondary: 170 45% 18%;
+  --secondary-foreground: 160 60% 96%;
+  --muted: 170 45% 16%;
+  --muted-foreground: 160 35% 72%;
+  --accent: 170 45% 21%;
+  --accent-foreground: 160 60% 96%;
+  --destructive: 0 80% 55%;
+  --destructive-foreground: 160 60% 96%;
+  --border: 170 60% 32%;
+  --input: 170 50% 26%;
+  --ring: 160 84% 39%;
+  background-color: #022c22;
+  background-image: radial-gradient(circle at 85% 0%, rgba(20, 184, 166, 0.18), transparent 32%),
+    radial-gradient(circle at 0% 50%, rgba(236, 72, 153, 0.12), transparent 30%);
+}
+.bio-admin header { box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5); }
+.bio-admin input:focus,
+.bio-admin textarea:focus,
+.bio-admin select:focus {
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.35);
+  border-color: hsl(170 84% 45%);
+  outline: none;
+}
+
 @keyframes bio-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes bio-pulse { 50% { opacity: 0.35; transform: scale(0.75); } }
 @keyframes bio-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
