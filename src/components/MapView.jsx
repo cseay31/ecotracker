@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Search, LocateFixed, X, MapPin, Loader2 } from 'lucide-react';
+import { Search, LocateFixed, X, MapPin, Loader2, Filter } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 function pinIcon(emoji, invasive) {
   const color = invasive ? '#dc2626' : '#16a34a';
@@ -77,6 +78,8 @@ export default function MapView({
   const [addr, setAddr] = useState('');
   const [geoLoading, setGeoLoading] = useState(false);
   const [inat, setInat] = useState(null);
+  const [showInat, setShowInat] = useState(true);
+  const [showInhouse, setShowInhouse] = useState(true);
 
   const haversineKm = (la, lo, bla, blo) =>
     Math.acos(
@@ -145,6 +148,7 @@ export default function MapView({
   };
 
   const handleMapClick = async (latlng) => {
+    if (!showInat) { setInat(null); return; }
     setInat({ lat: latlng.lat, lng: latlng.lng, loading: true, obs: null });
     const finish = (obs) => setInat((s) => ({ ...s, loading: false, obs }));
     try {
@@ -245,6 +249,21 @@ export default function MapView({
         <LocateFixed className={`h-5 w-5 ${locating ? 'animate-pulse' : ''}`} />
       </button>
 
+      {/* Filter overlay */}
+      <div className="absolute right-3 top-14 z-[1000] bg-background/95 backdrop-blur border rounded-md shadow-md px-3 py-2 space-y-2 text-xs w-48">
+        <div className="flex items-center gap-2 font-semibold text-[11px] uppercase tracking-wide text-muted-foreground">
+          <Filter className="h-3.5 w-3.5" /> Filters
+        </div>
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <Checkbox checked={showInat} onCheckedChange={(v) => setShowInat(!!v)} />
+          <span>iNaturalist observations</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <Checkbox checked={showInhouse} onCheckedChange={(v) => setShowInhouse(!!v)} />
+          <span>In-house observations</span>
+        </label>
+      </div>
+
       {/* Legend overlay */}
       <div className="absolute left-3 bottom-3 z-[1000] bg-background/95 backdrop-blur border rounded-md shadow-md px-3 py-2 text-xs space-y-1.5">
         <div className="font-semibold text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Legend</div>
@@ -301,15 +320,17 @@ export default function MapView({
           subdomains="abcd"
           maxZoom={20}
         />
-        <TileLayer
-          url="https://api.inaturalist.org/v1/points/{z}/{x}/{y}.png"
-          opacity={0.7}
-          attribution="iNaturalist"
-        />
+        {showInat && (
+          <TileLayer
+            url="https://api.inaturalist.org/v1/points/{z}/{x}/{y}.png"
+            opacity={0.7}
+            attribution="iNaturalist"
+          />
+        )}
         <FocusHandler focus={focus} />
         <BoundsHandler onBoundsChange={onBoundsChange} />
         <ClickHandler onClick={handleMapClick} />
-        {inat && (
+        {showInat && inat && (
           <Marker ref={inatMarkerRef} position={[inat.lat, inat.lng]} icon={inatIcon}>
             <Popup>
               {inat.loading ? (
@@ -343,7 +364,7 @@ export default function MapView({
             <Popup>You are here</Popup>
           </Marker>
         )}
-        {observations
+        {showInhouse && observations
           .filter((o) => (isAdmin ? o.exact_lat != null || o.public_lat != null : o.public_lat != null))
           .map((o) => {
             const lat = isAdmin && o.exact_lat != null ? o.exact_lat : o.public_lat;
