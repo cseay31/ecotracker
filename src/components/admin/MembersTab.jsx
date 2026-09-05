@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { logAudit } from '@/lib/adminAudit';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,15 +17,37 @@ export default function MembersTab() {
   const [suspendTarget, setSuspendTarget] = useState(null);
   const [reason, setReason] = useState('');
   const [roleTarget, setRoleTarget] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const debouncedSearch = useDebounce(search, 300);
 
   async function load() {
-    try { setUsers(await base44.entities.User.list(500)); } catch (e) {}
+    try {
+      const page = await base44.entities.User.filter({}, '-created_date', 20);
+      setUsers(page);
+      setHasMore(page.length === 20);
+    } catch (e) {}
   }
   useEffect(() => { load(); }, []);
 
+  async function loadMore() {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const cursor = users[users.length - 1]?.created_date;
+      const page = await base44.entities.User.filter(
+        cursor ? { created_date: { $lt: cursor } } : {},
+        '-created_date',
+        20
+      );
+      setUsers((prev) => [...prev, ...page]);
+      setHasMore(page.length === 20);
+    } catch (e) {} finally { setLoadingMore(false); }
+  }
+
   const filtered = users.filter((u) => {
     if (statusFilter !== 'all' && u.status !== statusFilter) return false;
-    if (search && !(`${u.full_name} ${u.email}`.toLowerCase().includes(search.toLowerCase()))) return false;
+    if (debouncedSearch && !(`${u.full_name} ${u.email}`.toLowerCase().includes(debouncedSearch.toLowerCase()))) return false;
     return true;
   });
 
@@ -97,6 +120,12 @@ export default function MembersTab() {
           </tbody>
         </table>
       </Card>
+
+      {hasMore && (
+        <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="w-full">
+          {loadingMore ? 'Loading…' : 'Load more'}
+        </Button>
+      )}
 
       <Dialog open={!!suspendTarget} onOpenChange={(o) => !o && setSuspendTarget(null)}>
         <DialogContent>

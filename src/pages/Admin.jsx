@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf } from 'lucide-react';
-import OverviewTab from '@/components/admin/OverviewTab';
-import MembersTab from '@/components/admin/MembersTab';
-import ModerationTab from '@/components/admin/ModerationTab';
-import MessagingTab from '@/components/admin/MessagingTab';
-import SettingsTab from '@/components/admin/SettingsTab';
-import AIScoutTab from '@/components/admin/AIScoutTab';
+import { Leaf, Loader2 } from 'lucide-react';
+
+const OverviewTab = lazy(() => import('@/components/admin/OverviewTab'));
+const MembersTab = lazy(() => import('@/components/admin/MembersTab'));
+const ModerationTab = lazy(() => import('@/components/admin/ModerationTab'));
+const MessagingTab = lazy(() => import('@/components/admin/MessagingTab'));
+const SettingsTab = lazy(() => import('@/components/admin/SettingsTab'));
+const AIScoutTab = lazy(() => import('@/components/admin/AIScoutTab'));
 
 const tabs = [
   { key: 'overview', label: '📊 Overview', comp: OverviewTab },
@@ -39,7 +40,9 @@ export default function Admin() {
           ))}
         </nav>
         <main className="flex-1 p-4 overflow-auto">
-          <Active />
+          <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>}>
+            <Active />
+          </Suspense>
         </main>
       </div>
     </div>

@@ -369,6 +369,7 @@ export default function MapView({
                     <img
                       src={inat.obs.image}
                       alt={inat.obs.common || inat.obs.sci || 'observation'}
+                      loading="lazy"
                       className="w-full h-32 object-cover rounded-md"
                     />
                   )}

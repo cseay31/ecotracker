@@ -7,11 +7,32 @@ import { toast } from 'sonner';
 
 export default function ModerationTab() {
   const [flags, setFlags] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   async function load() {
-    try { setFlags(await base44.entities.ModerationFlag.filter({ status: 'pending' })); } catch (e) {}
+    try {
+      const page = await base44.entities.ModerationFlag.filter({ status: 'pending' }, '-created_date', 20);
+      setFlags(page);
+      setHasMore(page.length === 20);
+    } catch (e) {}
   }
   useEffect(() => { load(); }, []);
+
+  async function loadMore() {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const cursor = flags[flags.length - 1]?.created_date;
+      const page = await base44.entities.ModerationFlag.filter(
+        { status: 'pending', created_date: { $lt: cursor } },
+        '-created_date',
+        20
+      );
+      setFlags((prev) => [...prev, ...page]);
+      setHasMore(page.length === 20);
+    } catch (e) {} finally { setLoadingMore(false); }
+  }
 
   async function actOn(f, status) {
     try {
@@ -42,6 +63,11 @@ export default function ModerationTab() {
               </div>
             </div>
           ))}
+          {hasMore && (
+            <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="w-full">
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </Button>
+          )}
         </div>
       </Card>
     </div>

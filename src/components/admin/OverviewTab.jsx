@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Users, Leaf, BadgeCheck, MessageSquareWarning, Flag, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function OverviewTab() {
   const [users, setUsers] = useState([]);
@@ -11,19 +13,21 @@ export default function OverviewTab() {
   const [flags, setFlags] = useState([]);
   const [logs, setLogs] = useState([]);
   const [logFilter, setLogFilter] = useState('');
+  const [logPage, setLogPage] = useState(1);
+  const debouncedLogFilter = useDebounce(logFilter, 300);
 
   useEffect(() => {
     (async () => {
-      try { setUsers(await base44.entities.User.list(500)); } catch (e) {}
-      try { setObs(await base44.entities.Observation.list('-created_date', 500)); } catch (e) {}
-      try { setInquiries(await base44.entities.AdminInquiry.filter({ status: 'pending' })); } catch (e) {}
-      try { setFlags(await base44.entities.ModerationFlag.filter({ status: 'pending' })); } catch (e) {}
-      try { setLogs(await base44.entities.AuditLog.list('-created_date', 100)); } catch (e) {}
+      try { setUsers(await base44.entities.User.list(200)); } catch (e) {}
+      try { setObs(await base44.entities.Observation.list('-created_date', 200)); } catch (e) {}
+      try { setInquiries(await base44.entities.AdminInquiry.filter({ status: 'pending' }, '-created_date', 20)); } catch (e) {}
+      try { setFlags(await base44.entities.ModerationFlag.filter({ status: 'pending' }, '-created_date', 20)); } catch (e) {}
+      try { setLogs(await base44.entities.AuditLog.list('-created_date', 50)); } catch (e) {}
     })();
   }, []);
 
-  const verified = obs.filter((o) => o.status === 'verified').length;
-  const activeMembers = users.filter((u) => u.status !== 'suspended').length;
+  const verified = useMemo(() => obs.filter((o) => o.status === 'verified').length, [obs]);
+  const activeMembers = useMemo(() => users.filter((u) => u.status !== 'suspended').length, [users]);
 
   const stats = [
     { label: 'Total Members', value: users.length, icon: Users },
@@ -42,8 +46,15 @@ export default function OverviewTab() {
     return Object.entries(byDay).sort().slice(-14).map(([date, count]) => ({ date: date.slice(5), count }));
   }, [obs]);
 
-  const liveFeed = [...users].filter((u) => u.last_active).sort((a, b) => new Date(b.last_active) - new Date(a.last_active)).slice(0, 8);
-  const filteredLogs = logs.filter((l) => !logFilter || (l.action_taken + l.target_entity + (l.created_by || '')).toLowerCase().includes(logFilter.toLowerCase()));
+  const liveFeed = useMemo(
+    () => [...users].filter((u) => u.last_active).sort((a, b) => new Date(b.last_active) - new Date(a.last_active)).slice(0, 8),
+    [users]
+  );
+  const filteredLogs = useMemo(
+    () => logs.filter((l) => !debouncedLogFilter || (l.action_taken + l.target_entity + (l.created_by || '')).toLowerCase().includes(debouncedLogFilter.toLowerCase())),
+    [logs, debouncedLogFilter]
+  );
+  const visibleLogs = filteredLogs.slice(0, logPage * 20);
 
   return (
     <div className="space-y-6">
@@ -112,8 +123,8 @@ export default function OverviewTab() {
               <tr><th className="py-2 pr-3">Time</th><th className="py-2 pr-3">Admin</th><th className="py-2 pr-3">Action</th><th className="py-2 pr-3">Target</th></tr>
             </thead>
             <tbody>
-              {filteredLogs.length === 0 && <tr><td colSpan={4} className="py-3 text-muted-foreground">No logs.</td></tr>}
-              {filteredLogs.map((l) => (
+              {visibleLogs.length === 0 && <tr><td colSpan={4} className="py-3 text-muted-foreground">No logs.</td></tr>}
+              {visibleLogs.map((l) => (
                 <tr key={l.id} className="border-b">
                   <td className="py-2 pr-3 text-xs">{l.created_date ? new Date(l.created_date).toLocaleString() : '-'}</td>
                   <td className="py-2 pr-3 text-xs">{l.created_by || l.admin_id}</td>
@@ -123,6 +134,11 @@ export default function OverviewTab() {
               ))}
             </tbody>
           </table>
+          {visibleLogs.length < filteredLogs.length && (
+            <div className="pt-3">
+              <Button variant="outline" className="w-full" onClick={() => setLogPage((p) => p + 1)}>Load more</Button>
+            </div>
+          )}
         </div>
       </Card>
     </div>

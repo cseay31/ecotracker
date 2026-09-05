@@ -22,6 +22,7 @@ export default function Profile() {
   const [shareOpen, setShareOpen] = useState(false);
   const [shareObs, setShareObs] = useState(null);
   const [expertEmail, setExpertEmail] = useState('');
+  const [visibleCount, setVisibleCount] = useState(20);
 
   useEffect(() => {
     (async () => {
@@ -95,7 +96,7 @@ export default function Profile() {
           <h2 className="font-semibold mb-3">My observations ({observations.length})</h2>
           <div className="space-y-2">
             {observations.length === 0 && <p className="text-sm text-muted-foreground">No observations yet. Head to the scanner!</p>}
-            {observations.map((o) => (
+            {observations.slice(0, visibleCount).map((o) => (
               <Card key={o.id} className="p-3 flex items-center justify-between">
                 <div>
                   <div className="font-medium text-sm">{o.common_name || o.species_name || 'Unknown'}</div>
@@ -108,6 +109,11 @@ export default function Profile() {
                 </Button>
               </Card>
             ))}
+            {visibleCount < observations.length && (
+              <Button variant="outline" className="w-full" onClick={() => setVisibleCount((c) => c + 20)}>
+                Load more
+              </Button>
+            )}
           </div>
         </div>
       </div>

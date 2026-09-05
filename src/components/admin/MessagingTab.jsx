@@ -15,12 +15,50 @@ export default function MessagingTab() {
   const [form, setForm] = useState({ title: '', body: '', priority: 'normal', show_as_popup: false });
   const [respondTo, setRespondTo] = useState(null);
   const [response, setResponse] = useState('');
+  const [annMore, setAnnMore] = useState(true);
+  const [inqMore, setInqMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   async function load() {
-    try { setAnnouncements(await base44.entities.Announcement.list('-created_date', 50)); } catch (e) {}
-    try { setInquiries(await base44.entities.AdminInquiry.list('-created_date', 50)); } catch (e) {}
+    try {
+      const a = await base44.entities.Announcement.list('-created_date', 20);
+      setAnnouncements(a);
+      setAnnMore(a.length === 20);
+    } catch (e) {}
+    try {
+      const i = await base44.entities.AdminInquiry.list('-created_date', 20);
+      setInquiries(i);
+      setInqMore(i.length === 20);
+    } catch (e) {}
   }
   useEffect(() => { load(); }, []);
+
+  async function loadMoreAnn() {
+    setLoadingMore(true);
+    try {
+      const cursor = announcements[announcements.length - 1]?.created_date;
+      const a = await base44.entities.Announcement.filter(
+        cursor ? { created_date: { $lt: cursor } } : {},
+        '-created_date',
+        20
+      );
+      setAnnouncements((prev) => [...prev, ...a]);
+      setAnnMore(a.length === 20);
+    } catch (e) {} finally { setLoadingMore(false); }
+  }
+  async function loadMoreInq() {
+    setLoadingMore(true);
+    try {
+      const cursor = inquiries[inquiries.length - 1]?.created_date;
+      const i = await base44.entities.AdminInquiry.filter(
+        cursor ? { created_date: { $lt: cursor } } : {},
+        '-created_date',
+        20
+      );
+      setInquiries((prev) => [...prev, ...i]);
+      setInqMore(i.length === 20);
+    } catch (e) {} finally { setLoadingMore(false); }
+  }
 
   async function createAnnouncement() {
     if (!form.title || !form.body) return;
@@ -87,6 +125,11 @@ export default function MessagingTab() {
               </div>
             </div>
           ))}
+          {annMore && (
+            <Button variant="outline" onClick={loadMoreAnn} disabled={loadingMore} className="w-full">
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </Button>
+          )}
         </div>
       </Card>
 
@@ -107,6 +150,11 @@ export default function MessagingTab() {
               )}
             </div>
           ))}
+          {inqMore && (
+            <Button variant="outline" onClick={loadMoreInq} disabled={loadingMore} className="w-full">
+              {loadingMore ? 'Loading…' : 'Load more'}
+            </Button>
+          )}
         </div>
       </Card>
 

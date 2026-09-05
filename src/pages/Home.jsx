@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import AppShell from '@/components/AppShell';
 import MapView from '@/components/MapView';
+import { useDebounce } from '@/hooks/useDebounce';
 import TopBanner from '@/components/TopBanner';
 import AnnouncementPopup from '@/components/AnnouncementPopup';
 import ContactAdminDialog from '@/components/ContactAdminDialog';
@@ -26,14 +27,8 @@ export default function Home() {
     if (location.state?.denied) setDenied(true);
   }, [location]);
 
-  const matchesSearch = (o) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      (o.common_name || '').toLowerCase().includes(q) ||
-      (o.species_name || '').toLowerCase().includes(q)
-    );
-  };
+  const debouncedSearch = useDebounce(search, 300);
+  const debouncedBbox = useDebounce(bbox, 300);
 
   useEffect(() => {
     (async () => {
@@ -58,23 +53,43 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!bbox) return;
+    if (!debouncedBbox) return;
     (async () => {
       try {
         const res = await base44.entities.Observation.filter(
           {
-            public_lat: { $gte: bbox.south, $lte: bbox.north },
-            public_long: { $gte: bbox.west, $lte: bbox.east },
+            public_lat: { $gte: debouncedBbox.south, $lte: debouncedBbox.north },
+            public_long: { $gte: debouncedBbox.west, $lte: debouncedBbox.east },
           },
           '-timestamp',
-          200
+          100
         );
         setObservations(res);
       } catch (e) {
         setObservations([]);
       }
     })();
-  }, [bbox]);
+  }, [debouncedBbox]);
+
+  const visibleObservations = useMemo(() => {
+    const q = debouncedSearch.trim().toLowerCase();
+    if (!q) return observations;
+    return observations.filter(
+      (o) =>
+        (o.common_name || '').toLowerCase().includes(q) ||
+        (o.species_name || '').toLowerCase().includes(q)
+    );
+  }, [observations, debouncedSearch]);
+
+  const visibleRecent = useMemo(() => {
+    const q = debouncedSearch.trim().toLowerCase();
+    if (!q) return recent;
+    return recent.filter(
+      (o) =>
+        (o.common_name || '').toLowerCase().includes(q) ||
+        (o.species_name || '').toLowerCase().includes(q)
+    );
+  }, [recent, debouncedSearch]);
 
   return (
     <AppShell>
@@ -89,7 +104,7 @@ export default function Home() {
       <div className="flex-1 p-4 space-y-7">
         <div className="bio-map-wrap h-[60vh] min-h-[360px]">
           <MapView
-            observations={observations.filter(matchesSearch)}
+            observations={visibleObservations}
             onBoundsChange={setBbox}
             focus={focus}
             searchQuery={search}
@@ -103,7 +118,7 @@ export default function Home() {
             {recent.length === 0 && (
               <p className="text-sm text-teal-200/70 col-span-full">No observations yet. Be the first to scan!</p>
             )}
-            {recent.filter(matchesSearch).map((o) => {
+            {visibleRecent.map((o) => {
               const canZoom = o.public_lat != null && o.public_long != null;
               const conf = Math.max(0, Math.min(100, Number(o.confidence_score) || 0));
               const zoom = () => canZoom && setFocus({ lat: o.public_lat, long: o.public_long, zoom: 14, nonce: Date.now() });
