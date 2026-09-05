@@ -13,7 +13,7 @@ export default function AppShell({ title, children }) {
       .catch(() => setIsAdmin(false));
   }, []);
   const nav = [
-    { to: '/', label: 'Map', icon: MapPin, active: loc.pathname === '/' },
+    { to: '/map', label: 'Map', icon: MapPin, active: loc.pathname === '/map' },
     { to: '/scanner', label: 'Scan', icon: ScanLine, active: loc.pathname === '/scanner' },
     { to: '/profile', label: 'Profile', icon: User, active: loc.pathname === '/profile' },
     ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield, active: loc.pathname === '/admin' }] : []),
@@ -22,8 +22,10 @@ export default function AppShell({ title, children }) {
     <div className="bio-app flex flex-col min-h-screen">
       <div className="bio-shell flex flex-col flex-1">
         <header className="bio-header sticky top-3 z-30 mx-3 mt-3">
-          <span className="bio-leaf"><Leaf className="h-5 w-5" /></span>
-          <span className="bio-brand">EcoTracker</span>
+          <Link to="/" className="flex items-center gap-3 no-underline">
+            <span className="bio-leaf"><Leaf className="h-5 w-5" /></span>
+            <span className="bio-brand">EcoTracker</span>
+          </Link>
           {title && <span className="ml-1 text-sm text-teal-200/80">{title}</span>}
           <Link
             to="/status"

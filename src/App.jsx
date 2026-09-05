@@ -13,6 +13,7 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import Onboarding from '@/pages/Onboarding';
+import Splash from '@/pages/Splash';
 import Home from '@/pages/Home';
 import Scanner from '@/pages/Scanner';
 import Profile from '@/pages/Profile';
@@ -54,6 +55,8 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/" element={<Splash />} />
+      <Route path="/map" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/connect" element={<Connect />} />
@@ -63,7 +66,6 @@ const AuthenticatedApp = () => {
         </ProtectedRoute>
       } />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route path="/" element={<Home />} />
         <Route path="/scanner" element={<Scanner />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/status" element={<Status />} />
