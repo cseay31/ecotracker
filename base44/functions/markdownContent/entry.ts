@@ -19,6 +19,12 @@ function mdResponse(markdown, status = 200) {
       'x-markdown-tokens': String(estimateTokens(markdown)),
       'content-signal': 'ai-train=yes, search=yes, ai-input=yes',
       'Cache-Control': 'public, max-age=300',
+      Link: [
+        '</.well-known/api-catalog>; rel="api-catalog"',
+        '</.well-known/mcp.json>; rel="service-desc"',
+        '</connect>; rel="service-doc"',
+        '</.well-known/agent-card.json>; rel="describedby"',
+      ].join(', '),
     },
   });
 }
