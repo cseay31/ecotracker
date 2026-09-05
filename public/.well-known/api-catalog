@@ -1,0 +1,19 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://ecotracking.base44.app",
+      "service-doc": [{ "href": "https://ecotracking.base44.app/about", "type": "text/html" }],
+      "status": [{ "href": "https://ecotracking.base44.app/status", "type": "text/html" }]
+    },
+    {
+      "anchor": "https://ecotracking.base44.app/functions/identifyImage",
+      "service-doc": [{ "href": "https://ecotracking.base44.app/about", "type": "text/html" }],
+      "type": "application/json"
+    },
+    {
+      "anchor": "https://ecotracking.base44.app/functions/identifyAudio",
+      "service-doc": [{ "href": "https://ecotracking.base44.app/about", "type": "text/html" }],
+      "type": "application/json"
+    }
+  ]
+}

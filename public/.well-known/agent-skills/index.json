@@ -1,0 +1,29 @@
+{
+  "$schema": "https://agentskills.io/schema/v0.2.0/index.json",
+  "skills": [
+    {
+      "name": "identify-species-image",
+      "type": "skill-md",
+      "description": "Identify a plant or animal species from a photo using AI computer vision.",
+      "url": "https://ecotracking.base44.app/about"
+    },
+    {
+      "name": "identify-species-audio",
+      "type": "skill-md",
+      "description": "Identify bird and amphibian species from audio recordings using bioacoustic analysis.",
+      "url": "https://ecotracking.base44.app/about"
+    },
+    {
+      "name": "log-observation",
+      "type": "skill-md",
+      "description": "Record a geolocated wildlife observation with photo or audio media.",
+      "url": "https://ecotracking.base44.app/about"
+    },
+    {
+      "name": "check-invasive-watchlist",
+      "type": "skill-md",
+      "description": "Check whether a species appears on the regional invasive species watchlist.",
+      "url": "https://ecotracking.base44.app/about"
+    }
+  ]
+}

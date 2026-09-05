@@ -1,0 +1,46 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "name": "EcoTracker",
+    "url": "https://ecotracking.base44.app",
+    "description": "AI-powered biodiversity monitoring and citizen-science platform."
+  },
+  "entries": [
+    {
+      "id": "urn:air:ecotracking.base44.app:observations:community-map",
+      "displayName": "Community Biodiversity Map",
+      "type": "text/html",
+      "url": "https://ecotracking.base44.app/",
+      "representativeQueries": [
+        "show me wildlife observations near me",
+        "what species have been spotted in my area",
+        "find invasive plants on the map",
+        "community nature sightings map",
+        "iNaturalist observations near a location"
+      ]
+    },
+    {
+      "id": "urn:air:ecotracking.base44.app:tools:species-identification",
+      "displayName": "AI Species Identification",
+      "type": "text/html",
+      "url": "https://ecotracking.base44.app/scanner",
+      "representativeQueries": [
+        "identify this plant from a photo",
+        "what bird is making this sound",
+        "identify animal from image",
+        "species identification from audio recording"
+      ]
+    },
+    {
+      "id": "urn:air:ecotracking.base44.app:info:about",
+      "displayName": "About EcoTracker",
+      "type": "text/html",
+      "url": "https://ecotracking.base44.app/about",
+      "representativeQueries": [
+        "what is EcoTracker",
+        "how does EcoTracker work",
+        "biodiversity monitoring app information"
+      ]
+    }
+  ]
+}

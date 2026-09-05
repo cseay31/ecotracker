@@ -1,0 +1,45 @@
+{
+  "name": "EcoTracker",
+  "version": "1.0.0",
+  "description": "EcoTracker is a citizen-science biodiversity monitoring platform. It helps users identify wildlife via AI-powered image and audio recognition, map observations on a community map, track invasive species, and contribute to environmental research.",
+  "url": "https://ecotracking.base44.app",
+  "supportedInterfaces": [
+    {
+      "serviceUrl": "https://ecotracking.base44.app",
+      "transport": "HTTP"
+    }
+  ],
+  "capabilities": {
+    "supportsAuthentication": true,
+    "authMethod": "email_password",
+    "publicData": true
+  },
+  "skills": [
+    {
+      "id": "identify-species-image",
+      "name": "Identify Species from Image",
+      "description": "Upload a photo and receive AI-powered species identification with confidence scores and invasive status."
+    },
+    {
+      "id": "identify-species-audio",
+      "name": "Identify Species from Audio",
+      "description": "Upload an audio recording and receive bioacoustic species identification (bird and amphibian calls)."
+    },
+    {
+      "id": "log-observation",
+      "name": "Log Wildlife Observation",
+      "description": "Record a geolocated wildlife observation with species, media, and metadata."
+    },
+    {
+      "id": "browse-community-map",
+      "name": "Browse Community Map",
+      "description": "Explore a live map of citizen-science observations overlaid with iNaturalist research-grade data."
+    },
+    {
+      "id": "check-invasive-watchlist",
+      "name": "Check Invasive Species Watchlist",
+      "description": "Query the regional invasive species watchlist to determine if an observed species is of concern."
+    }
+  ],
+  "contact": "https://ecotracking.base44.app/contact"
+}

@@ -1,0 +1,29 @@
+{
+  "serverInfo": {
+    "name": "EcoTracker",
+    "version": "1.0.0",
+    "description": "Biodiversity monitoring platform with AI species identification, community mapping, and invasive species tracking."
+  },
+  "transport": {
+    "type": "http",
+    "endpoint": "https://ecotracking.base44.app"
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": true
+  },
+  "tools": [
+    {
+      "name": "identify_from_image",
+      "description": "Submit an image URL to identify the species depicted using AI computer vision.",
+      "endpoint": "https://ecotracking.base44.app/functions/identifyImage"
+    },
+    {
+      "name": "identify_from_audio",
+      "description": "Submit an audio file URL to identify species from bioacoustic analysis.",
+      "endpoint": "https://ecotracking.base44.app/functions/identifyAudio"
+    }
+  ],
+  "documentation": "https://ecotracking.base44.app/about",
+  "contact": "https://ecotracking.base44.app/contact"
+}
