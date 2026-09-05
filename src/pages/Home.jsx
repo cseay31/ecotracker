@@ -7,8 +7,6 @@ import TopBanner from '@/components/TopBanner';
 import AnnouncementPopup from '@/components/AnnouncementPopup';
 import ContactAdminDialog from '@/components/ContactAdminDialog';
 import MaintenanceOverlay from '@/components/MaintenanceOverlay';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { MessageSquare, AlertCircle } from 'lucide-react';
 
 export default function Home() {
@@ -83,13 +81,13 @@ export default function Home() {
       <MaintenanceOverlay settings={settings} />
       <TopBanner text={settings?.top_alert_banner} />
       {denied && (
-        <div className="bg-red-50 text-red-700 px-4 py-2 text-sm flex items-center gap-2">
+        <div className="bg-pink-600/90 text-white px-4 py-2 text-sm flex items-center gap-2">
           <AlertCircle className="h-4 w-4" />
           Access denied — admin privileges required.
         </div>
       )}
-      <div className="flex-1 p-4 space-y-4">
-        <div className="h-[55vh] min-h-[320px]">
+      <div className="flex-1 p-4 space-y-7">
+        <div className="bio-map-wrap h-[60vh] min-h-[360px]">
           <MapView
             observations={observations.filter(matchesSearch)}
             onBoundsChange={setBbox}
@@ -100,36 +98,45 @@ export default function Home() {
           />
         </div>
         <div>
-          <h2 className="font-semibold text-lg mb-2">Recent observations</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {recent.length === 0 && <p className="text-sm text-muted-foreground col-span-full">No observations yet. Be the first to scan!</p>}
+          <h2 className="bio-section-title">Recent observations</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+            {recent.length === 0 && (
+              <p className="text-sm text-teal-200/70 col-span-full">No observations yet. Be the first to scan!</p>
+            )}
             {recent.filter(matchesSearch).map((o) => {
               const canZoom = o.public_lat != null && o.public_long != null;
+              const conf = Math.max(0, Math.min(100, Number(o.confidence_score) || 0));
+              const zoom = () => canZoom && setFocus({ lat: o.public_lat, long: o.public_long, zoom: 14, nonce: Date.now() });
               return (
-                <Card
+                <div
                   key={o.id}
-                  onClick={() => canZoom && setFocus({ lat: o.public_lat, long: o.public_long, zoom: 14, nonce: Date.now() })}
-                  className={`p-3 space-y-1 ${canZoom ? 'cursor-pointer hover:ring-2 hover:ring-primary/40 transition' : ''}`}
+                  tabIndex={canZoom ? 0 : undefined}
+                  role={canZoom ? 'button' : undefined}
+                  onClick={zoom}
+                  onKeyDown={canZoom ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zoom(); } } : undefined}
+                  className="bio-card"
                 >
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <div className="bio-type">
                     {o.observation_type === 'audio' ? '🔊 Audio' : '🌿 Photo'}
-                    {canZoom && <span className="ml-auto">📍 Zoom</span>}
+                    {canZoom && <span className="float-right">📍 Zoom</span>}
                   </div>
-                  <div className="font-medium text-sm leading-tight">{o.common_name || o.species_name || 'Unknown'}</div>
-                  <div className="text-xs text-muted-foreground">Confidence: {o.confidence_score ?? 0}%</div>
-                  {o.is_invasive && <div className="text-xs text-red-600 font-medium">⚠ Invasive</div>}
-                </Card>
+                  <div className="bio-name">{o.common_name || o.species_name || 'Unknown'}</div>
+                  <div className="bio-confidence">Confidence: {o.confidence_score ?? 0}%</div>
+                  <div className="bio-meter"><i style={{ width: `${conf}%` }} /></div>
+                  {o.is_invasive && <div className="bio-warn">⚠ Invasive</div>}
+                </div>
               );
             })}
           </div>
         </div>
       </div>
-      <Button
-        className="fixed right-4 bottom-20 z-40 rounded-full shadow-lg h-14 w-14 p-0"
+      <button
+        className="bio-contact fixed right-4 bottom-20 z-40 rounded-full h-14 w-14 p-0 grid place-items-center"
         onClick={() => setContactOpen(true)}
+        aria-label="Contact admin"
       >
         <MessageSquare className="h-6 w-6" />
-      </Button>
+      </button>
       <AnnouncementPopup
         announcement={popup}
         onClose={() => {

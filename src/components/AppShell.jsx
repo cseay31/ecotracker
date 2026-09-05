@@ -18,21 +18,24 @@ export default function AppShell({ title, children }) {
     ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield, active: loc.pathname === '/admin' }] : []),
   ];
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-30 bg-primary text-primary-foreground px-4 py-3 flex items-center gap-2 shadow-sm">
-        <Leaf className="h-5 w-5" />
-        <span className="font-bold text-lg">EcoTracker</span>
-        {title && <span className="ml-auto text-sm opacity-80">{title}</span>}
-      </header>
-      <main className="flex-1 flex flex-col">{children}</main>
-      <nav className="sticky bottom-0 z-30 bg-card border-t flex">
-        {nav.map((n) => (
-          <Link key={n.to} to={n.to} className={`flex-1 flex flex-col items-center py-2 text-xs ${n.active ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-            <n.icon className="h-5 w-5 mb-0.5" />
-            {n.label}
-          </Link>
-        ))}
-      </nav>
+    <div className="bio-app flex flex-col min-h-screen">
+      <div className="bio-shell flex flex-col flex-1">
+        <header className="bio-header sticky top-3 z-30 mx-3 mt-3">
+          <span className="bio-leaf"><Leaf className="h-5 w-5" /></span>
+          <span className="bio-brand">EcoTracker</span>
+          {title && <span className="ml-1 text-sm text-teal-200/80">{title}</span>}
+          <span className="bio-dot" />
+        </header>
+        <main className="flex-1 flex flex-col">{children}</main>
+        <nav className="bio-nav sticky bottom-0 z-30 flex">
+          {nav.map((n) => (
+            <Link key={n.to} to={n.to} className={`bio-navitem ${n.active ? 'is-active' : ''}`}>
+              <n.icon className="h-5 w-5" />
+              {n.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
     </div>
   );
 }

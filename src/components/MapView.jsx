@@ -234,18 +234,18 @@ export default function MapView({
       {/* Search overlay */}
       <div className="absolute left-3 top-3 z-[1000] w-72 max-w-[75%]">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-200/70 pointer-events-none" />
           <input
             value={searchQuery}
             onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder="Search species or common name..."
-            className="w-full pl-8 pr-8 py-2 text-sm rounded-md border bg-background/95 backdrop-blur shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="bio-input w-full pl-8 pr-8 py-2 text-sm rounded-md focus:outline-none"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchChange?.('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-teal-200/70 hover:text-teal-100"
               title="Clear search"
             >
               <X className="h-4 w-4" />
@@ -253,15 +253,15 @@ export default function MapView({
           )}
         </div>
         <form onSubmit={geocode} className="relative mt-2">
-          <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-teal-200/70 pointer-events-none" />
           <input
             value={addr}
             onChange={(e) => setAddr(e.target.value)}
             placeholder="Search address or zipcode..."
-            className="w-full pl-8 pr-8 py-2 text-sm rounded-md border bg-background/95 backdrop-blur shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="bio-input w-full pl-8 pr-8 py-2 text-sm rounded-md focus:outline-none"
           />
           {geoLoading && (
-            <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-teal-200/70" />
           )}
         </form>
       </div>
@@ -271,15 +271,15 @@ export default function MapView({
         type="button"
         onClick={locate}
         disabled={locating}
-        className="absolute right-3 top-3 z-[1000] bg-background/95 backdrop-blur border rounded-md h-9 w-9 flex items-center justify-center shadow-md hover:bg-accent disabled:opacity-60"
+        className="bio-overlay absolute right-3 top-3 z-[1000] rounded-md h-9 w-9 flex items-center justify-center hover:text-teal-100 disabled:opacity-60"
         title="Zoom to my location"
       >
         <LocateFixed className={`h-5 w-5 ${locating ? 'animate-pulse' : ''}`} />
       </button>
 
       {/* Filter overlay */}
-      <div className="absolute right-3 top-14 z-[1000] bg-background/95 backdrop-blur border rounded-md shadow-md px-3 py-2 space-y-2 text-xs w-48">
-        <div className="flex items-center gap-2 font-semibold text-[11px] uppercase tracking-wide text-muted-foreground">
+      <div className="bio-overlay absolute right-3 top-14 z-[1000] rounded-md px-3 py-2 space-y-2 text-xs w-48">
+        <div className="flex items-center gap-2 font-semibold text-[11px] uppercase tracking-wide text-teal-200/70">
           <Filter className="h-3.5 w-3.5" /> Filters
         </div>
         <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -293,8 +293,8 @@ export default function MapView({
       </div>
 
       {/* Legend overlay */}
-      <div className="absolute left-3 bottom-3 z-[1000] bg-background/95 backdrop-blur border rounded-md shadow-md px-3 py-2 text-xs space-y-1.5">
-        <div className="font-semibold text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Legend</div>
+      <div className="bio-overlay absolute left-3 bottom-3 z-[1000] rounded-md px-3 py-2 text-xs space-y-1.5">
+        <div className="font-semibold text-[11px] uppercase tracking-wide text-teal-200/70 mb-1">Legend</div>
         <div className="flex items-center gap-2">
           <span className="inline-block h-3 w-3 rounded-full bg-[#16a34a] border border-white shadow-sm" />
           <span>Native / non-invasive</span>
@@ -314,7 +314,7 @@ export default function MapView({
           <span>Your location</span>
         </div>
         <div className="border-t pt-1.5 mt-1">
-          <div className="font-semibold text-[11px] uppercase tracking-wide text-muted-foreground mb-1">iNaturalist pins</div>
+          <div className="font-semibold text-[11px] uppercase tracking-wide text-teal-200/70 mb-1">iNaturalist pins</div>
           <div className="flex items-center gap-2">
             <span className="inline-block h-3 w-3 rounded-full bg-[#8FB36D] border border-white shadow-sm" />
             <span>Plants</span>
