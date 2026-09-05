@@ -1,1 +1,1 @@
-{"auth": "none"}
+{"auth": "none", "tools": {"entity_overrides": {"Observation": {"operations": []}, "SystemSetting": {"operations": []}}}}
