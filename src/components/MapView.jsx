@@ -102,20 +102,48 @@ export default function MapView({
     const py = Math.floor((wy - ty) * 256);
     const gres = await fetch(`https://api.inaturalist.org/v1/points/${z}/${tx}/${ty}.grid.json`);
     const gdata = await gres.json();
-    const row = gdata?.grid?.[Math.min(63, Math.floor(py / 4))];
-    const cell = row ? [...row][Math.min(63, Math.floor(px / 4))] : null;
-    const obsId = cell ? gdata.keys?.[cell.codePointAt(0) - 32] : null;
-    if (!obsId) return null;
-    const dres = await fetch(`https://api.inaturalist.org/v1/observations/${obsId}`);
+    if (!gdata?.grid) return null;
+    // Standard UTFGrid decoding: codes 34 (") and 92 (\) are skipped in the encoding.
+    const decode = (ch) => {
+      let id = ch.codePointAt(0);
+      if (id >= 93) id--;
+      if (id >= 35) id--;
+      return id - 32;
+    };
+    const cr = Math.min(63, Math.floor(py / 4));
+    const cc = Math.min(63, Math.floor(px / 4));
+    const ids = new Set();
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        const row = gdata.grid[cr + dr];
+        if (!row) continue;
+        const ch = [...row][cc + dc];
+        if (!ch) continue;
+        const id = gdata.keys?.[decode(ch)];
+        if (id) ids.add(id);
+      }
+    }
+    if (!ids.size) return null;
+    const dres = await fetch(`https://api.inaturalist.org/v1/observations?id=${[...ids].join(',')}&per_page=${ids.size}`);
     const ddata = await dres.json();
-    const o = ddata?.results?.[0];
-    if (!o) return null;
+    let best = null;
+    let bestDist = Infinity;
+    for (const o of ddata?.results || []) {
+      if (!o.location) continue;
+      const [ola, olo] = o.location.split(',').map(Number);
+      const d = haversineKm(latlng.lat, latlng.lng, ola, olo);
+      if (d < bestDist) {
+        bestDist = d;
+        best = o;
+      }
+    }
+    if (!best) return null;
     return {
-      image: o.photos?.[0]?.url?.replace('square', 'medium'),
-      common: o.taxon?.preferred_common_name,
-      sci: o.taxon?.name,
-      url: o.uri,
-      distKm: 0,
+      image: best.photos?.[0]?.url?.replace('square', 'medium'),
+      common: best.taxon?.preferred_common_name,
+      sci: best.taxon?.name,
+      url: best.uri,
+      distKm: +bestDist.toFixed(2),
     };
   };
 
