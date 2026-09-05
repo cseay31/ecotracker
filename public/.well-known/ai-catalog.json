@@ -1,45 +1,33 @@
 {
-  "specVersion": "1.0",
+  "specVersion": "0.1",
   "host": {
+    "hostname": "ecotracking.base44.app",
     "name": "EcoTracker",
-    "url": "https://ecotracking.base44.app",
-    "description": "AI-powered biodiversity monitoring and citizen-science platform."
+    "description": "Biodiversity tracking platform with AI-powered wildlife identification and community mapping."
   },
   "entries": [
     {
-      "id": "urn:air:ecotracking.base44.app:observations:community-map",
-      "displayName": "Community Biodiversity Map",
-      "type": "text/html",
-      "url": "https://ecotracking.base44.app/",
+      "identifier": "urn:air:ecotracking.base44.app:mcp:server",
+      "displayName": "EcoTracker MCP Server",
+      "type": "application/json",
+      "url": "https://ecotracking.base44.app/mcp",
+      "description": "Public MCP server exposing EcoTracker biodiversity data to AI agents.",
       "representativeQueries": [
-        "show me wildlife observations near me",
-        "what species have been spotted in my area",
-        "find invasive plants on the map",
-        "community nature sightings map",
-        "iNaturalist observations near a location"
+        "What invasive species have been observed recently?",
+        "Show me biodiversity observations near a location",
+        "List active announcements from EcoTracker",
+        "What species are on the invasive watchlist?"
       ]
     },
     {
-      "id": "urn:air:ecotracking.base44.app:tools:species-identification",
-      "displayName": "AI Species Identification",
-      "type": "text/html",
-      "url": "https://ecotracking.base44.app/scanner",
+      "identifier": "urn:air:ecotracking.base44.app:api:agent-card",
+      "displayName": "EcoTracker Agent Card",
+      "type": "application/json",
+      "url": "https://ecotracking.base44.app/.well-known/agent-card.json",
+      "description": "A2A agent card describing EcoTracker's agentic capabilities and skills.",
       "representativeQueries": [
-        "identify this plant from a photo",
-        "what bird is making this sound",
-        "identify animal from image",
-        "species identification from audio recording"
-      ]
-    },
-    {
-      "id": "urn:air:ecotracking.base44.app:info:about",
-      "displayName": "About EcoTracker",
-      "type": "text/html",
-      "url": "https://ecotracking.base44.app/about",
-      "representativeQueries": [
-        "what is EcoTracker",
-        "how does EcoTracker work",
-        "biodiversity monitoring app information"
+        "What can the EcoTracker agent do?",
+        "How do I integrate with EcoTracker?"
       ]
     }
   ]

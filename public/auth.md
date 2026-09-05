@@ -1,32 +1,20 @@
-# EcoTracker Agent Authentication
+# auth.md
 
-EcoTracker is a biodiversity monitoring platform. Authentication is required to submit or manage observations.
+EcoTracker uses token-based authentication managed by the Base44 platform.
 
-## Authentication Method
+## Authentication Methods
 
-EcoTracker uses email/password and OAuth 2.0 (Google) for user authentication.
+- **Email/Password** — standard credential login
+- **Google OAuth** — single sign-on via Google
 
 ## Agent Registration
 
-AI agents wishing to interact with EcoTracker's data should:
+AI agents interacting with EcoTracker's public MCP server (`/.well-known/mcp.json`) do not require authentication for read-only access to public entities (Announcements, InvasiveWatchlist).
 
-1. Register an account at https://ecotracking.base44.app/register
-2. Use email+password credentials to authenticate
-3. Include the returned session token in subsequent API requests
+Agents requiring write access or access to user-scoped data must authenticate via the Base44 auth flow. Contact the EcoTracker team via `/contact` for integration enquiries.
 
-## Public Endpoints
+## Endpoints
 
-The following routes are publicly accessible without authentication:
-- `GET /` — Community map and recent observations
-- `GET /about` — Platform information
-- `GET /contact` — Contact form
-
-## Protected Endpoints
-
-The following routes require authentication:
-- `POST /api/` — All data-mutation endpoints
-- `GET /admin` — Admin dashboard (role: admin only)
-
-## Contact
-
-For API access or integration inquiries, use the contact form at https://ecotracking.base44.app/contact
+- Login: `https://ecotracking.base44.app/login`
+- Register: `https://ecotracking.base44.app/register`
+- MCP Server: see `/.well-known/mcp.json`

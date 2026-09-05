@@ -1,45 +1,41 @@
 {
   "name": "EcoTracker",
   "version": "1.0.0",
-  "description": "EcoTracker is a citizen-science biodiversity monitoring platform. It helps users identify wildlife via AI-powered image and audio recognition, map observations on a community map, track invasive species, and contribute to environmental research.",
+  "description": "AI-powered biodiversity tracking platform with multi-modal wildlife identification, community mapping, invasive species monitoring, and public observation data.",
   "url": "https://ecotracking.base44.app",
   "supportedInterfaces": [
     {
-      "serviceUrl": "https://ecotracking.base44.app",
-      "transport": "HTTP"
+      "type": "mcp",
+      "url": "https://ecotracking.base44.app/mcp",
+      "transport": "http"
     }
   ],
   "capabilities": {
-    "supportsAuthentication": true,
-    "authMethod": "email_password",
-    "publicData": true
+    "publicData": true,
+    "speciesIdentification": true,
+    "invasiveSpeciesAlerts": true,
+    "communityObservations": true
   },
   "skills": [
     {
-      "id": "identify-species-image",
-      "name": "Identify Species from Image",
-      "description": "Upload a photo and receive AI-powered species identification with confidence scores and invasive status."
+      "id": "query-observations",
+      "name": "Query Observations",
+      "description": "Read public biodiversity observations including species name, location, confidence score, and invasive status."
     },
     {
-      "id": "identify-species-audio",
-      "name": "Identify Species from Audio",
-      "description": "Upload an audio recording and receive bioacoustic species identification (bird and amphibian calls)."
+      "id": "query-invasive-watchlist",
+      "name": "Query Invasive Watchlist",
+      "description": "Read the curated list of invasive species with regional data and action tips."
     },
     {
-      "id": "log-observation",
-      "name": "Log Wildlife Observation",
-      "description": "Record a geolocated wildlife observation with species, media, and metadata."
+      "id": "query-announcements",
+      "name": "Query Announcements",
+      "description": "Read active platform announcements and biodiversity alerts."
     },
     {
-      "id": "browse-community-map",
-      "name": "Browse Community Map",
-      "description": "Explore a live map of citizen-science observations overlaid with iNaturalist research-grade data."
-    },
-    {
-      "id": "check-invasive-watchlist",
-      "name": "Check Invasive Species Watchlist",
-      "description": "Query the regional invasive species watchlist to determine if an observed species is of concern."
+      "id": "identify-species",
+      "name": "Identify Species",
+      "description": "Submit an image or audio file to identify wildlife species using AI vision and bioacoustic models."
     }
-  ],
-  "contact": "https://ecotracking.base44.app/contact"
+  ]
 }
