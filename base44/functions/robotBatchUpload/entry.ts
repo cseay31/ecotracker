@@ -10,14 +10,12 @@ const ROBOT_USER_ID = 'ROBOT_UNIT_01';
 
 export default async function (req) {
   try {
-    // Webhook-style endpoint secured by a shared ROBOT_TOKEN secret. Callers must
-    // send `Authorization: Bearer <ROBOT_TOKEN>`; requests without a match are rejected.
-    const expectedToken = process.env.ROBOT_TOKEN;
-    const authHeader = req.headers.get('authorization') || '';
-    if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
-      return Response.json({ error: 'unauthorized' }, { status: 401 });
-    }
+    // Batch upload is an admin-only operation. Authenticate the caller and require
+    // an admin role before any service-role database writes are performed.
     const base44 = createClientFromRequest(req);
+    const caller = await base44.auth.me();
+    if (!caller) return Response.json({ error: 'unauthorized' }, { status: 401 });
+    if (caller.role !== 'admin') return Response.json({ error: 'forbidden' }, { status: 403 });
     const body = await req.json();
     const items = Array.isArray(body.items) ? body.items : [];
     if (items.length === 0) {
