@@ -10,7 +10,8 @@ export default function Footer() {
       </span>
       <Link to="/about" className="mx-1 hover:text-emerald-300">About</Link>·
       <Link to="/contact" className="mx-1 hover:text-emerald-300">Contact</Link>·
-      <Link to="/status" className="ml-1 hover:text-emerald-300">Status</Link>
+      <Link to="/status" className="mx-1 hover:text-emerald-300">Status</Link>·
+      <Link to="/connect" className="ml-1 hover:text-emerald-300">Connect</Link>
     </footer>
   );
 }
