@@ -126,35 +126,49 @@ export async function secondaryImageIdentification(base44, file_url) {
 // taxa autocomplete with preferred_place_id, which returns establishment_means.
 // Returns 'unknown' on any failure so the identification still completes.
 const VALID_ESTABLISHMENT_MEANS = ['native', 'introduced', 'endemic', 'unknown'];
+
+// Retry a JSON GET a few times — the establishment-means chain spans two free,
+// unauthenticated APIs (BigDataCloud + iNaturalist) that transiently drop or
+// throttle requests, which was leaving observations tagged "unknown".
+async function fetchJsonRetry(url, ms, attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetchWithTimeout(url, {}, ms);
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data) return data;
+      }
+    } catch (e) {
+      // fall through to retry
+    }
+    if (i < attempts - 1) await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+  }
+  return null;
+}
+
 export async function fetchEstablishmentMeans(species_name, lat, long) {
   if (!species_name || species_name === 'Unknown') return 'unknown';
   if (lat == null || long == null) return 'unknown';
   try {
-    const geoRes = await fetchWithTimeout(
+    const geo = await fetchJsonRetry(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${long}&localityLanguage=en`,
-      {},
       10000
     );
-    const geo = geoRes.ok ? await geoRes.json().catch(() => null) : null;
     const candidates = [geo && geo.principalSubdivision, geo && geo.countryName].filter(Boolean);
     let placeId = null;
     for (const name of candidates) {
-      const prRes = await fetchWithTimeout(
+      const pr = await fetchJsonRetry(
         `https://api.inaturalist.org/v1/places/autocomplete?q=${encodeURIComponent(name)}&per_page=1`,
-        {},
         10000
       );
-      const pr = prRes.ok ? await prRes.json().catch(() => null) : null;
       placeId = pr && pr.results && pr.results[0] && pr.results[0].id;
       if (placeId) break;
     }
     if (!placeId) return 'unknown';
-    const trRes = await fetchWithTimeout(
+    const tr = await fetchJsonRetry(
       `https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(species_name)}&preferred_place_id=${placeId}&per_page=1`,
-      {},
       10000
     );
-    const tr = trRes.ok ? await trRes.json().catch(() => null) : null;
     const t = tr && tr.results && tr.results[0];
     const means = (t && t.establishment_means && t.establishment_means.establishment_means) || (t && t.preferred_establishment_means);
     return VALID_ESTABLISHMENT_MEANS.includes(means) ? means : 'unknown';
