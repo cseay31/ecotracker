@@ -107,7 +107,7 @@ export async function secondaryImageIdentification(base44, file_url) {
 // `audio` (file) + `meta` (JSON string of lat/lon/sensitivity/...). Response:
 // {"msg":"success","results":[["Turdus_migratorius", 0.93], ...]}. Until a server is
 // configured, audio observations are still stored but identified as "Unknown".
-export async function bioacousticIdentification(base44, file_url, lat, long, endpoint, token) {
+export async function bioacousticIdentification(base44, file_url, lat, long, endpoint) {
   if (!endpoint) {
     return { species_name: 'Unknown', common_name: '', confidence_score: 0, degraded: true, error: 'endpoint_not_configured' };
   }
@@ -130,9 +130,7 @@ export async function bioacousticIdentification(base44, file_url, lat, long, end
     form.append('audio', blob, fname);
     form.append('meta', JSON.stringify(meta));
     const url = endpoint.endsWith('/analyze') ? endpoint : endpoint.replace(/\/$/, '') + '/analyze';
-    const headers = {};
-    if (token) headers['X-Birdnet-Token'] = token;
-    const res = await fetch(url, { method: 'POST', body: form, headers });
+    const res = await fetch(url, { method: 'POST', body: form });
     const data = await res.json().catch(() => ({}));
     const results = Array.isArray(data.results) ? data.results : [];
     if (results.length === 0) {
@@ -210,8 +208,8 @@ export async function runImageIdentification(base44, file_url, lat, long) {
 }
 
 // Full audio identification flow.
-export async function runAudioIdentification(base44, file_url, lat, long, endpoint, token) {
-  const bio = await bioacousticIdentification(base44, file_url, lat, long, endpoint, token);
+export async function runAudioIdentification(base44, file_url, lat, long, endpoint) {
+  const bio = await bioacousticIdentification(base44, file_url, lat, long, endpoint);
   let species_name = bio.species_name;
   let common_name = bio.common_name;
   let confidence_score = bio.confidence_score;
