@@ -2,7 +2,7 @@
 
 // Only allow outbound fetches to trusted file-storage hosts. Prevents SSRF via
 // caller-controlled file_url values pointing at internal IPs / metadata endpoints.
-const ALLOWED_FILE_HOST_SUFFIXES = ['.base44.com', '.wixstatic.com'];
+const ALLOWED_FILE_HOST_SUFFIXES = ['.base44.com', '.base44.app', '.wixstatic.com'];
 
 export function assertSafeFileUrl(fileUrl) {
   let url;
