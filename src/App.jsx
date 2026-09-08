@@ -19,6 +19,7 @@ import Home from '@/pages/Home';
 import Scanner from '@/pages/Scanner';
 import Profile from '@/pages/Profile';
 import Admin from '@/pages/Admin';
+import Observations from '@/pages/Observations';
 import Status from '@/pages/Status';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/status" element={<Status />} />
         <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+        <Route path="/observations" element={<AdminRoute><Observations /></AdminRoute>} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

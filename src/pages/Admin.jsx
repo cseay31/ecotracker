@@ -30,7 +30,10 @@ export default function Admin() {
       <header className="bg-primary text-primary-foreground px-4 py-3 flex items-center gap-2 sticky top-0 z-30">
         <Leaf className="h-5 w-5" />
         <span className="font-bold text-lg">EcoTracker Admin</span>
-        <Link to="/" className="ml-auto text-sm underline opacity-90">Exit to app</Link>
+        <div className="ml-auto flex items-center gap-3 text-sm">
+          <Link to="/observations" className="underline opacity-90">All Observations</Link>
+          <Link to="/" className="underline opacity-90">Exit to app</Link>
+        </div>
       </header>
       <div className="md:hidden border-b flex overflow-x-auto bg-card">
         {tabs.map((t) => (
