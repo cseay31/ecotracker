@@ -94,12 +94,19 @@ export async function primaryImageIdentification(file_url, lat, long) {
   }
 }
 
-// Secondary fallback: built-in AI vision model.
-export async function secondaryImageIdentification(base44, file_url) {
+// Secondary fallback: built-in AI vision model. Also judges establishment
+// means (native / introduced / endemic / unknown) for the species at the
+// photo's location, since the iNaturalist CV endpoint is gated (401) and the
+// primary path no longer supplies this field.
+export async function secondaryImageIdentification(base44, file_url, lat, long) {
   try {
+    const locHint =
+      lat != null && long != null
+        ? ` The photo was taken near latitude ${lat}, longitude ${long}. Use that location to judge whether the species is native, introduced, or endemic there; use "unknown" only if you genuinely cannot tell.`
+        : '';
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt:
-        'You are a biodiversity expert. Identify the species in this photo. Respond with the scientific species_name, common_name, and a confidence score from 0 to 100 reflecting how certain you are.',
+        `You are a biodiversity expert. Identify the species in this photo. Respond with the scientific species_name, common_name, a confidence score from 0 to 100 reflecting how certain you are, and the establishment_means for this species at the location where the photo was taken (one of: native, introduced, endemic, unknown).${locHint}`,
       file_urls: [file_url],
       response_json_schema: {
         type: 'object',
@@ -107,16 +114,19 @@ export async function secondaryImageIdentification(base44, file_url) {
           species_name: { type: 'string' },
           common_name: { type: 'string' },
           confidence: { type: 'number' },
+          establishment_means: { type: 'string', enum: ['native', 'introduced', 'endemic', 'unknown'] },
         },
       },
     });
+    const validMeans = ['native', 'introduced', 'endemic', 'unknown'];
     return {
       species_name: result.species_name || 'Unknown',
       common_name: result.common_name || '',
       confidence_score: Math.round(result.confidence || 0),
+      establishment_means: validMeans.includes(result.establishment_means) ? result.establishment_means : 'unknown',
     };
   } catch (e) {
-    return { species_name: 'Unknown', common_name: '', confidence_score: 0 };
+    return { species_name: 'Unknown', common_name: '', confidence_score: 0, establishment_means: 'unknown' };
   }
 }
 
@@ -189,11 +199,14 @@ export async function runImageIdentification(base44, file_url, lat, long) {
     status = 'verified';
     points = 10 + (is_invasive ? 5 : 0);
   } else {
-    const sec = await secondaryImageIdentification(base44, file_url);
+    const sec = await secondaryImageIdentification(base44, file_url, lat, long);
     if (sec.confidence_score >= 70) {
       species_name = sec.species_name || species_name;
       common_name = sec.common_name || common_name;
       confidence_score = sec.confidence_score;
+      if (sec.establishment_means && sec.establishment_means !== 'unknown') {
+        establishment_means = sec.establishment_means;
+      }
       const inv = await checkInvasive(base44, species_name, establishment_means);
       status = 'unverified';
       points = 5;
