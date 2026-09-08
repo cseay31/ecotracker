@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Image as Img } from '@/components/ui/image';
-import { Loader2, ShieldCheck, ShieldAlert, Trash2, MapPin, AlertTriangle } from 'lucide-react';
+import { Loader2, ShieldCheck, ShieldAlert, Trash2, MapPin, AlertTriangle, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ReviewTab() {
@@ -19,7 +19,7 @@ export default function ReviewTab() {
   async function load() {
     setLoading(true);
     try {
-      const page = await base44.entities.Observation.filter({ status: 'flagged_for_review' }, '-created_date', 20);
+      const page = await base44.entities.Observation.filter({}, '-created_date', 20);
       setItems(page);
       setHasMore(page.length === 20);
     } catch (e) {
@@ -36,7 +36,7 @@ export default function ReviewTab() {
     try {
       const cursor = items[items.length - 1]?.created_date;
       const page = await base44.entities.Observation.filter(
-        { status: 'flagged_for_review', created_date: { $lt: cursor } },
+        { created_date: { $lt: cursor } },
         '-created_date',
         20
       );
@@ -93,11 +93,11 @@ export default function ReviewTab() {
       <Card className="p-4">
         <div className="flex items-center gap-2 mb-1">
           <AlertTriangle className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Flagged discoveries</h3>
+          <h3 className="font-semibold">All discoveries</h3>
           <Badge variant="secondary" className="ml-1">{items.length}{hasMore ? '+' : ''}</Badge>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          Low-confidence or ambiguous identifications awaiting expert review. Verify, demote, or remove observations.
+          Every observation submitted to the community. Verify, demote, or remove records as needed.
         </p>
 
         <div className="space-y-3">
@@ -124,6 +124,14 @@ export default function ReviewTab() {
                   </span>
                   {obs.common_name && (
                     <span className="text-sm text-muted-foreground italic">({obs.common_name})</span>
+                  )}
+                  {obs.status === 'verified' && (
+                    <span
+                      className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-500 shrink-0"
+                      title="Verified"
+                    >
+                      <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
+                    </span>
                   )}
                   {obs.is_invasive && (
                     <Badge variant="destructive" className="gap-1">
@@ -156,7 +164,7 @@ export default function ReviewTab() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-2">
-                  <Button size="sm" onClick={() => setStatus(obs, 'verified')} disabled={acting === obs.id}>
+                  <Button size="sm" onClick={() => setStatus(obs, 'verified')} disabled={acting === obs.id || obs.status === 'verified'}>
                     <ShieldCheck className="h-4 w-4" /> Verify
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => setStatus(obs, 'unverified')} disabled={acting === obs.id}>
