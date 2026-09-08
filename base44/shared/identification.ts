@@ -94,19 +94,12 @@ export async function primaryImageIdentification(file_url, lat, long) {
   }
 }
 
-// Secondary fallback: built-in AI vision model. Also judges establishment
-// means (native / introduced / endemic / unknown) for the species at the
-// photo's location, since the iNaturalist CV endpoint is gated (401) and the
-// primary path no longer supplies this field.
-export async function secondaryImageIdentification(base44, file_url, lat, long) {
+// Secondary fallback: built-in AI vision model.
+export async function secondaryImageIdentification(base44, file_url) {
   try {
-    const locHint =
-      lat != null && long != null
-        ? ` The photo was taken near latitude ${lat}, longitude ${long}. Use that location to judge whether the species is native, introduced, or endemic there; use "unknown" only if you genuinely cannot tell.`
-        : '';
     const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt:
-        `You are a biodiversity expert. Identify the species in this photo. Respond with the scientific species_name, common_name, a confidence score from 0 to 100 reflecting how certain you are, and the establishment_means for this species at the location where the photo was taken (one of: native, introduced, endemic, unknown).${locHint}`,
+        'You are a biodiversity expert. Identify the species in this photo. Respond with the scientific species_name, common_name, and a confidence score from 0 to 100 reflecting how certain you are.',
       file_urls: [file_url],
       response_json_schema: {
         type: 'object',
@@ -114,19 +107,59 @@ export async function secondaryImageIdentification(base44, file_url, lat, long) 
           species_name: { type: 'string' },
           common_name: { type: 'string' },
           confidence: { type: 'number' },
-          establishment_means: { type: 'string', enum: ['native', 'introduced', 'endemic', 'unknown'] },
         },
       },
     });
-    const validMeans = ['native', 'introduced', 'endemic', 'unknown'];
     return {
       species_name: result.species_name || 'Unknown',
       common_name: result.common_name || '',
       confidence_score: Math.round(result.confidence || 0),
-      establishment_means: validMeans.includes(result.establishment_means) ? result.establishment_means : 'unknown',
     };
   } catch (e) {
-    return { species_name: 'Unknown', common_name: '', confidence_score: 0, establishment_means: 'unknown' };
+    return { species_name: 'Unknown', common_name: '', confidence_score: 0 };
+  }
+}
+
+// Once a species is identified, look up its establishment means at the
+// observation's location from iNaturalist: reverse-geocode the coordinates to a
+// state/country name (BigDataCloud, free, no key) -> iNaturalist place id ->
+// taxa autocomplete with preferred_place_id, which returns establishment_means.
+// Returns 'unknown' on any failure so the identification still completes.
+const VALID_ESTABLISHMENT_MEANS = ['native', 'introduced', 'endemic', 'unknown'];
+export async function fetchEstablishmentMeans(species_name, lat, long) {
+  if (!species_name || species_name === 'Unknown') return 'unknown';
+  if (lat == null || long == null) return 'unknown';
+  try {
+    const geoRes = await fetchWithTimeout(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${long}&localityLanguage=en`,
+      {},
+      10000
+    );
+    const geo = geoRes.ok ? await geoRes.json().catch(() => null) : null;
+    const candidates = [geo && geo.principalSubdivision, geo && geo.countryName].filter(Boolean);
+    let placeId = null;
+    for (const name of candidates) {
+      const prRes = await fetchWithTimeout(
+        `https://api.inaturalist.org/v1/places/autocomplete?q=${encodeURIComponent(name)}&per_page=1`,
+        {},
+        10000
+      );
+      const pr = prRes.ok ? await prRes.json().catch(() => null) : null;
+      placeId = pr && pr.results && pr.results[0] && pr.results[0].id;
+      if (placeId) break;
+    }
+    if (!placeId) return 'unknown';
+    const trRes = await fetchWithTimeout(
+      `https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(species_name)}&preferred_place_id=${placeId}&per_page=1`,
+      {},
+      10000
+    );
+    const tr = trRes.ok ? await trRes.json().catch(() => null) : null;
+    const t = tr && tr.results && tr.results[0];
+    const means = (t && t.establishment_means && t.establishment_means.establishment_means) || (t && t.preferred_establishment_means);
+    return VALID_ESTABLISHMENT_MEANS.includes(means) ? means : 'unknown';
+  } catch (e) {
+    return 'unknown';
   }
 }
 
@@ -181,7 +214,8 @@ export async function bioacousticIdentification(base44, file_url, lat, long, end
   }
 }
 
-// Full image identification flow: primary -> invasive check -> conditional fallback.
+// Full image identification flow: primary -> conditional secondary fallback,
+// then query iNaturalist for the establishment means of the settled species.
 export async function runImageIdentification(base44, file_url, lat, long) {
   const primary = await primaryImageIdentification(file_url, lat, long);
   let species_name = primary.species_name;
@@ -189,43 +223,32 @@ export async function runImageIdentification(base44, file_url, lat, long) {
   let confidence_score = primary.confidence_score;
   let establishment_means = primary.establishment_means;
 
-  const { is_invasive } = await checkInvasive(base44, species_name, establishment_means);
-
   let status = 'flagged_for_review';
   let points = 0;
   let flag_reason = null;
 
   if (confidence_score >= 70) {
     status = 'verified';
-    points = 10 + (is_invasive ? 5 : 0);
   } else {
-    const sec = await secondaryImageIdentification(base44, file_url, lat, long);
+    const sec = await secondaryImageIdentification(base44, file_url);
     if (sec.confidence_score >= 70) {
       species_name = sec.species_name || species_name;
       common_name = sec.common_name || common_name;
       confidence_score = sec.confidence_score;
-      if (sec.establishment_means && sec.establishment_means !== 'unknown') {
-        establishment_means = sec.establishment_means;
-      }
-      const inv = await checkInvasive(base44, species_name, establishment_means);
       status = 'unverified';
-      points = 5;
-      return {
-        species_name,
-        common_name,
-        establishment_means,
-        is_invasive: inv.is_invasive,
-        confidence_score,
-        status,
-        flag_reason,
-        points,
-      };
     } else {
-      status = 'flagged_for_review';
       flag_reason = 'Low confidence from both identification models';
-      points = 0;
     }
   }
+
+  // Once the species is settled, query iNaturalist for its establishment means
+  // at the observation's location; overrides the primary/secondary guess.
+  const em = await fetchEstablishmentMeans(species_name, lat, long);
+  if (em !== 'unknown') establishment_means = em;
+
+  const { is_invasive } = await checkInvasive(base44, species_name, establishment_means);
+  if (status === 'verified') points = 10 + (is_invasive ? 5 : 0);
+  else if (status === 'unverified') points = 5;
 
   return {
     species_name,
@@ -245,7 +268,10 @@ export async function runAudioIdentification(base44, file_url, lat, long, endpoi
   let species_name = bio.species_name;
   let common_name = bio.common_name;
   let confidence_score = bio.confidence_score;
-  const establishment_means = 'unknown';
+
+  // Query iNaturalist for the identified species' establishment means at the
+  // observation's location.
+  const establishment_means = await fetchEstablishmentMeans(species_name, lat, long);
   const { is_invasive } = await checkInvasive(base44, species_name, establishment_means);
 
   let status = 'unverified';
