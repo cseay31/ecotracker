@@ -43,36 +43,55 @@ export async function checkInvasive(base44, speciesName, establishmentMeans) {
   return { is_invasive: isIntroduced || onWatchlist, onWatchlist };
 }
 
-// Primary location-tuned iNaturalist Computer Vision identification.
+// Fetch with a hard timeout so an unofficial/throttled upstream can't hang the
+// whole identification request. On abort it throws, letting callers fall back.
+async function fetchWithTimeout(url, opts = {}, ms = 20000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...opts, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+// Primary location-tuned iNaturalist Computer Vision identification. The CV
+// endpoint is unofficial and can throttle/drop connections, so every step is
+// time-bounded; on any failure we return "Unknown" so the secondary model runs.
 export async function primaryImageIdentification(file_url, lat, long) {
-  const imgRes = await fetch(assertSafeFileUrl(file_url));
-  const blob = await imgRes.blob();
-  const form = new FormData();
-  form.append('image', blob, 'observation.jpg');
-  if (lat != null) form.append('lat', String(lat));
-  if (long != null) form.append('lng', String(long));
-  const res = await fetch('https://api.inaturalist.org/v1/computervision/score_image', {
-    method: 'POST',
-    body: form,
-  });
-  const contentType = res.headers.get('content-type') || '';
-  let data = { results: [] };
-  if (contentType.includes('application/json')) {
-    data = await res.json();
-  } else {
+  try {
+    const imgRes = await fetchWithTimeout(assertSafeFileUrl(file_url), {}, 15000);
+    const blob = await imgRes.blob();
+    const form = new FormData();
+    form.append('image', blob, 'observation.jpg');
+    if (lat != null) form.append('lat', String(lat));
+    if (long != null) form.append('lng', String(long));
+    const res = await fetchWithTimeout(
+      'https://api.inaturalist.org/v1/computervision/score_image',
+      { method: 'POST', body: form },
+      20000
+    );
+    const contentType = res.headers.get('content-type') || '';
+    let data = { results: [] };
+    if (contentType.includes('application/json')) {
+      data = await res.json();
+    } else {
+      return { species_name: 'Unknown', common_name: '', confidence_score: 0, establishment_means: 'unknown' };
+    }
+    const results = data.results || [];
+    if (results.length === 0) {
+      return { species_name: 'Unknown', common_name: '', confidence_score: 0, establishment_means: 'unknown' };
+    }
+    const top = results[0];
+    return {
+      species_name: top.taxon.name || 'Unknown',
+      common_name: top.taxon.preferred_common_name || '',
+      confidence_score: Math.round(top.combined_score || 0),
+      establishment_means: top.taxon.establishment_means || 'unknown',
+    };
+  } catch (e) {
     return { species_name: 'Unknown', common_name: '', confidence_score: 0, establishment_means: 'unknown' };
   }
-  const results = data.results || [];
-  if (results.length === 0) {
-    return { species_name: 'Unknown', common_name: '', confidence_score: 0, establishment_means: 'unknown' };
-  }
-  const top = results[0];
-  return {
-    species_name: top.taxon.name || 'Unknown',
-    common_name: top.taxon.preferred_common_name || '',
-    confidence_score: Math.round(top.combined_score || 0),
-    establishment_means: top.taxon.establishment_means || 'unknown',
-  };
 }
 
 // Secondary fallback: built-in AI vision model.
