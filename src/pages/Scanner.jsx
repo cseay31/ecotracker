@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Mic, Loader2, MapPin, WifiOff, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Camera, Mic, Loader2, MapPin, WifiOff, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 const OFFLINE_KEY = 'ecotracker_offline_queue';
@@ -148,6 +148,13 @@ export default function Scanner() {
             </div>
           )}
         </Card>
+
+        {mode === 'audio' && (
+          <div className="flex items-start gap-2 text-xs text-amber-200 bg-amber-900/30 border border-amber-600/40 p-2.5 rounded-lg">
+            <Info className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>As a nonprofit, our audio processing servers run on limited resources and may spin down when idle. Audio identification can take a little while — especially the first request after a quiet period. Thanks for your patience!</span>
+          </div>
+        )}
 
         {mode === 'image' ? (
           <>
