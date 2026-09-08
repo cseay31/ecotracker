@@ -8,6 +8,7 @@ const ModerationTab = lazy(() => import('@/components/admin/ModerationTab'));
 const MessagingTab = lazy(() => import('@/components/admin/MessagingTab'));
 const SettingsTab = lazy(() => import('@/components/admin/SettingsTab'));
 const AIScoutTab = lazy(() => import('@/components/admin/AIScoutTab'));
+const BirdnetTab = lazy(() => import('@/components/admin/BirdnetTab'));
 
 const tabs = [
   { key: 'overview', label: '📊 Overview', comp: OverviewTab },
@@ -15,6 +16,7 @@ const tabs = [
   { key: 'moderation', label: '🛡️ Moderation', comp: ModerationTab },
   { key: 'messaging', label: '📣 Messaging', comp: MessagingTab },
   { key: 'settings', label: '⚙️ Settings', comp: SettingsTab },
+  { key: 'birdnet', label: '🔊 BirdNET', comp: BirdnetTab },
   { key: 'ai', label: '🤖 AI Scout', comp: AIScoutTab },
 ];
 
