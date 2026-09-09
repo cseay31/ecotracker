@@ -27,11 +27,14 @@ import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import Connect from '@/pages/Connect';
 import Forums from '@/pages/Forums';
+import Privacy from '@/pages/Privacy';
+import Terms from '@/pages/Terms';
+import ConsentGate from '@/pages/ConsentGate';
 import AdminRoute from '@/components/AdminRoute';
 // Add page imports here
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, isAuthenticated } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -53,6 +56,21 @@ const AuthenticatedApp = () => {
     }
   }
 
+  // Existing users who haven't accepted the current Privacy Policy + Terms and
+  // confirmed their age must do so before using any part of the app.
+  const needsConsent =
+    isAuthenticated && user && (!user.privacy_accepted || !user.tos_accepted || !user.age_confirmed_over_13);
+
+  if (needsConsent) {
+    return (
+      <Routes>
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="*" element={<ConsentGate />} />
+      </Routes>
+    );
+  }
+
   // Render the main app
   return (
     <Routes>
@@ -60,6 +78,8 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
       <Route path="/" element={<Splash />} />
       <Route path="/map" element={<Home />} />
       <Route path="/about" element={<About />} />
