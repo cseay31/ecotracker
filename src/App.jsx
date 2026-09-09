@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import WebMcpTools from '@/components/WebMcpTools';
+import GlobalBanner from '@/components/GlobalBanner';
 import { Navigate } from 'react-router-dom';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Login from '@/pages/Login';
@@ -91,6 +92,7 @@ function App() {
         <Router>
           <ScrollToTop />
           <WebMcpTools />
+          <GlobalBanner />
           <AuthenticatedApp />
         </Router>
         <Toaster />

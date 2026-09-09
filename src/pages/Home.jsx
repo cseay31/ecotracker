@@ -4,7 +4,6 @@ import { base44 } from '@/api/base44Client';
 import AppShell from '@/components/AppShell';
 import MapView from '@/components/MapView';
 import { useDebounce } from '@/hooks/useDebounce';
-import TopBanner from '@/components/TopBanner';
 import AnnouncementPopup from '@/components/AnnouncementPopup';
 import ContactAdminDialog from '@/components/ContactAdminDialog';
 import MaintenanceOverlay from '@/components/MaintenanceOverlay';
@@ -94,7 +93,6 @@ export default function Home() {
   return (
     <AppShell>
       <MaintenanceOverlay settings={settings} />
-      <TopBanner text={settings?.top_alert_banner} />
       {denied && (
         <div className="bg-pink-600/90 text-white px-4 py-2 text-sm flex items-center gap-2">
           <AlertCircle className="h-4 w-4" />
