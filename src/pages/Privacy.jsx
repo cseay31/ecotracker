@@ -56,11 +56,10 @@ export default function Privacy() {
           <section>
             <h2 className="text-lg font-semibold text-teal-50 mb-1">5. Age confirmation — stored as a boolean only</h2>
             <p>
-              To comply with child-safety rules, we ask whether you are 13 or older. <strong>No birthdate, no age
-              value, and no identifying information is ever collected or transmitted.</strong> The check is processed
-              locally and the only thing stored on your account is a single boolean (<code>true</code> /
-              <code>false</code>) confirming you are over 13. Even EcoTracker cannot see your actual age — only that
-              boolean.
+              To comply with child-safety rules, we ask for your date of birth. <strong>Your birthdate is processed
+              locally in your browser and is never stored or sent to our servers.</strong> The only thing saved on
+              your account is a single boolean (<code>true</code> / <code>false</code>) confirming you are over 13.
+              Even EcoTracker cannot see your actual birthdate or age — only that boolean.
             </p>
           </section>
 

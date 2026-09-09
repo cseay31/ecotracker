@@ -4,16 +4,30 @@ import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Leaf, Loader2, ShieldCheck, FileText, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+function computeAge(dateStr) {
+  if (!dateStr) return null;
+  const b = new Date(dateStr);
+  if (isNaN(b.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - b.getFullYear();
+  const m = now.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
+  return age;
+}
 
 export default function ConsentGate() {
   const { checkUserAuth } = useAuth();
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTos, setAgreeTos] = useState(false);
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [birthdate, setBirthdate] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const canSubmit = agreePrivacy && agreeTos && ageConfirmed && !submitting;
+  const age = computeAge(birthdate);
+  const ageValid = age != null && age >= 13;
+  const canSubmit = agreePrivacy && agreeTos && ageValid && !submitting;
 
   const handleAccept = async () => {
     setError('');
@@ -66,22 +80,32 @@ export default function ConsentGate() {
             />
           </div>
 
-          <label className="mt-5 flex items-start gap-3 cursor-pointer select-none rounded-xl border border-emerald-400/30 bg-emerald-500/5 p-4">
-            <input
-              type="checkbox"
-              checked={ageConfirmed}
-              onChange={(e) => setAgeConfirmed(e.target.checked)}
-              className="mt-0.5 h-5 w-5 accent-emerald-500 shrink-0"
+          <div className="mt-5 rounded-xl border border-emerald-400/30 bg-emerald-500/5 p-4">
+            <label className="block text-sm font-semibold text-teal-50" htmlFor="birthdate">
+              Date of birth
+            </label>
+            <Input
+              id="birthdate"
+              type="date"
+              value={birthdate}
+              onChange={(e) => setBirthdate(e.target.value)}
+              className="bio-input mt-2 max-w-xs"
+              max={new Date().toISOString().slice(0, 10)}
             />
-            <span className="text-sm text-teal-100">
-              <span className="font-semibold text-teal-50">I confirm I am 13 years of age or older.</span>
-              <span className="flex items-center gap-1 mt-1 text-teal-300/80">
-                <Lock className="h-3.5 w-3.5" /> This stays confidential and is processed locally — no birthdate or age
-                is ever collected. Only a single yes/no boolean is stored on your account. Not even EcoTracker can see
-                your actual age.
+            {birthdate && !ageValid && (
+              <p className="text-sm text-pink-300 mt-2">
+                {age != null ? 'You must be 13 or older to use EcoTracker.' : 'Please enter a valid date of birth.'}
+              </p>
+            )}
+            <span className="flex items-start gap-1 mt-3 text-xs text-teal-300/80">
+              <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+              <span>
+                This is processed <strong>locally in your browser</strong>. Your birthdate is <strong>never stored or
+                sent to our servers</strong> — we only check whether you're 13+ and save a single yes/no boolean on your
+                account. Not even EcoTracker can see your actual birthdate.
               </span>
             </span>
-          </label>
+          </div>
 
           {error && <p className="text-sm text-pink-300 mt-4">{error}</p>}
 
@@ -93,7 +117,7 @@ export default function ConsentGate() {
             {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Accept & continue'}
           </Button>
           <p className="text-xs text-teal-300/60 text-center mt-3">
-            You must accept both policies and confirm your age to use EcoTracker.
+            You must accept both policies and confirm you are 13 or older to use EcoTracker.
           </p>
         </div>
       </div>
