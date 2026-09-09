@@ -26,21 +26,21 @@ export default function Splash() {
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-teal-50 leading-tight">
               Track wildlife with <span className="text-emerald-400">AI vision &amp; sound</span>
             </h1>
-            <p className="mt-5 text-base sm:text-lg text-teal-200/80 leading-relaxed">
-              Identify species from a photo or recording, map observations across the wild, and catch
-              invasive threats early — all in one community platform.
+            <p className="mt-5 text-base sm:text-lg text-teal-200/80 leading-relaxed">Identify species from a photo or recording, map observations across the wild, and catch invasive threats early — all in one open source, community platform.
+
+
             </p>
             <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 to="/map"
-                className="bio-contact inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold no-underline"
-              >
+                className="bio-contact inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold no-underline">
+                
                 <MapPin className="h-5 w-5" /> Explore the map
               </Link>
               <Link
                 to="/scanner"
-                className="inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold border border-teal-400 text-teal-100 hover:bg-teal-500/15 transition-colors no-underline"
-              >
+                className="inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold border border-teal-400 text-teal-100 hover:bg-teal-500/15 transition-colors no-underline">
+                
                 <ScanLine className="h-5 w-5" /> Start scanning <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -62,8 +62,8 @@ export default function Splash() {
 
         <Footer />
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 function Feature({ icon: Icon, title, body }) {
@@ -74,6 +74,6 @@ function Feature({ icon: Icon, title, body }) {
       </div>
       <div className="font-bold text-teal-50">{title}</div>
       <p className="text-sm text-teal-200/75 mt-1 leading-relaxed">{body}</p>
-    </div>
-  );
+    </div>);
+
 }
