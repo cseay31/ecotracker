@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -24,6 +25,7 @@ import Status from '@/pages/Status';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import Connect from '@/pages/Connect';
+import Forums from '@/pages/Forums';
 import AdminRoute from '@/components/AdminRoute';
 // Add page imports here
 
@@ -62,6 +64,7 @@ const AuthenticatedApp = () => {
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/connect" element={<Connect />} />
+      <Route path="/forums" element={<Forums />} />
       <Route path="/onboarding" element={
         <ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />}>
           <Onboarding />
@@ -91,6 +94,7 @@ function App() {
           <AuthenticatedApp />
         </Router>
         <Toaster />
+        <SonnerToaster position="top-right" richColors />
       </QueryClientProvider>
     </AuthProvider>
   )
