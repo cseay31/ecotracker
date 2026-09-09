@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Leaf, ScanLine, User, MapPin, Shield, Activity, MessageSquare } from 'lucide-react';
+import { Leaf, ScanLine, User, MapPin, Shield, Activity, MessageSquare, Github } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import Footer from '@/components/Footer';
 
@@ -16,6 +16,7 @@ export default function AppShell({ title, children }) {
     { to: '/map', label: 'Map', icon: MapPin, active: loc.pathname === '/map' },
     { to: '/scanner', label: 'Scan', icon: ScanLine, active: loc.pathname === '/scanner' },
     { to: '/forums', label: 'Forum', icon: MessageSquare, active: loc.pathname === '/forums' },
+    { to: '/open-source', label: 'Open Source', icon: Github, active: loc.pathname === '/open-source' },
     { to: '/profile', label: 'Profile', icon: User, active: loc.pathname === '/profile' },
     ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield, active: loc.pathname === '/admin' }] : []),
   ];
@@ -27,7 +28,14 @@ export default function AppShell({ title, children }) {
             <span className="bio-leaf"><Leaf className="h-5 w-5" /></span>
             <span className="bio-brand">EcoTracker</span>
           </Link>
-          {title && <span className="ml-1 text-sm text-teal-200/80">{title}</span>}
+          <Link
+            to="/open-source"
+            className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-200 hover:bg-emerald-500/20 transition-colors"
+            title="EcoTracker is open source under the MIT License"
+          >
+            <Github className="h-3.5 w-3.5" /> MIT · Open Source
+          </Link>
+          {title && <span className="ml-1 text-sm text-teal-200/80 hidden sm:inline">{title}</span>}
           <Link
             to="/status"
             className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-teal-100 hover:text-emerald-300 transition-colors"

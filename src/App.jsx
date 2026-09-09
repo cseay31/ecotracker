@@ -27,6 +27,7 @@ import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import Connect from '@/pages/Connect';
 import Forums from '@/pages/Forums';
+import OpenSource from '@/pages/OpenSource';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
 import ConsentGate from '@/pages/ConsentGate';
@@ -86,6 +87,7 @@ const AuthenticatedApp = () => {
       <Route path="/contact" element={<Contact />} />
       <Route path="/connect" element={<Connect />} />
       <Route path="/forums" element={<Forums />} />
+      <Route path="/open-source" element={<OpenSource />} />
       <Route path="/onboarding" element={
         <ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />}>
           <Onboarding />
