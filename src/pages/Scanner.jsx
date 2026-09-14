@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Camera, Mic, Loader2, MapPin, WifiOff, CheckCircle2, AlertTriangle, Info } from 'lucide-react';
+import { Camera, Mic, Loader2, MapPin, WifiOff, CheckCircle2, AlertTriangle, Info, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
 const OFFLINE_KEY = 'ecotracker_offline_queue';
@@ -21,6 +21,7 @@ export default function Scanner() {
   const mediaRef = useRef(null);
   const chunksRef = useRef([]);
   const fileInputRef = useRef(null);
+  const audioInputRef = useRef(null);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -180,9 +181,31 @@ export default function Scanner() {
             </Button>
           </>
         ) : (
-          <Button className="w-full h-20 text-lg" disabled={processing || !coords} onClick={recording ? stopRecording : startRecording}>
-            {recording ? <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-red-500 animate-pulse" /> Stop recording</span> : processing ? <span className="flex items-center gap-2"><Loader2 className="h-6 w-6 animate-spin" /> Identifying...</span> : <span className="flex items-center gap-2"><Mic className="h-6 w-6" /> Record audio</span>}
-          </Button>
+          <>
+            <input
+              ref={audioInputRef}
+              type="file"
+              accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files[0];
+                e.target.value = '';
+                if (f) processFile(f, 'audio');
+              }}
+            />
+            <Button className="w-full h-20 text-lg" disabled={processing || !coords} onClick={recording ? stopRecording : startRecording}>
+              {recording ? <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-red-500 animate-pulse" /> Stop recording</span> : processing ? <span className="flex items-center gap-2"><Loader2 className="h-6 w-6 animate-spin" /> Identifying...</span> : <span className="flex items-center gap-2"><Mic className="h-6 w-6" /> Record audio</span>}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full h-12"
+              disabled={processing || recording || !coords}
+              onClick={() => audioInputRef.current?.click()}
+            >
+              {processing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+              Upload audio file (MP3, WAV…)
+            </Button>
+          </>
         )}
 
         {result?.observation && (
