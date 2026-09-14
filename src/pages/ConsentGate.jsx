@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
+import { safeReturnTo } from '@/lib/authReturnTo';
 import { Leaf, Loader2, ShieldCheck, FileText, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,8 +41,7 @@ export default function ConsentGate() {
         consent_version: '1.0',
       });
       await checkUserAuth();
-      const returnTo = new URLSearchParams(window.location.search).get('returnTo') || '/map';
-      window.location.href = returnTo;
+      window.location.href = safeReturnTo();
     } catch (e) {
       setError(e?.message || 'Could not save your consent. Please try again.');
       setSubmitting(false);

@@ -15,11 +15,23 @@ function assertSafeEndpoint(raw) {
   if (m) {
     const a = parseInt(m[1], 10);
     const b = parseInt(m[2], 10);
-    if (a === 10 || a === 127 || a === 0 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)) {
+    if (
+      a === 0 ||
+      a === 10 ||
+      a === 127 ||
+      a === 169 && b === 254 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168)
+    ) {
       throw new Error('private/local IP not allowed');
     }
   }
-  if (host === '::1' || host === '[::1]') throw new Error('private/local IP not allowed');
+  // IPv6 loopback, link-local (fe80::/10), and ULA (fc00::/7, incl. fd00::/8)
+  const v6 = host.replace(/^\[|\]$/g, '').toLowerCase();
+  if (v6 === '::1' || v6.startsWith('fe8') || v6.startsWith('fe9') || v6.startsWith('fea') || v6.startsWith('feb') || v6.startsWith('fc') || v6.startsWith('fd')) {
+    throw new Error('private/local IP not allowed');
+  }
   return url;
 }
 
