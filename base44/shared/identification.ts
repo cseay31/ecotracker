@@ -2,7 +2,8 @@
 
 // Only allow outbound fetches to trusted file-storage hosts. Prevents SSRF via
 // caller-controlled file_url values pointing at internal IPs / metadata endpoints.
-const ALLOWED_FILE_HOST_SUFFIXES = ['.base44.com', '.base44.app', '.wixstatic.com'];
+// Allow both apex hosts and their subdomains (e.g. base44.app and media.base44.com).
+const ALLOWED_FILE_HOSTS = ['base44.com', 'base44.app', 'wixstatic.com'];
 
 export function assertSafeFileUrl(fileUrl) {
   let url;
@@ -15,7 +16,8 @@ export function assertSafeFileUrl(fileUrl) {
     throw new Error('unsupported file_url scheme');
   }
   const host = url.hostname.toLowerCase();
-  if (!ALLOWED_FILE_HOST_SUFFIXES.some((s) => host.endsWith(s))) {
+  const ok = ALLOWED_FILE_HOSTS.some((h) => host === h || host.endsWith('.' + h));
+  if (!ok) {
     throw new Error('untrusted file_url host');
   }
   return fileUrl;
