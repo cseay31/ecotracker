@@ -26,11 +26,19 @@ export default function Status() {
           </a>
         </div>
 
-        <div className="bio-overlay rounded-2xl p-8 text-center space-y-5">
-          <p className="text-teal-100/90 max-w-md mx-auto">
-            UptimeRobot's status pages can't be embedded directly. Open the live
-            status dashboard to view uptime history and incidents for EcoTracker.
-          </p>
+        <div className="bio-overlay rounded-2xl p-8 text-center space-y-6">
+          <a
+            href="https://stats.uptimerobot.com/Q37jD66o79?utm_source=status_badge&utm_medium=referral"
+            target="_blank"
+            rel="noopener"
+            className="inline-block"
+          >
+            <img
+              src="https://badge.uptimerobot.com/psp/2d3c48ab8dea7d2251ca9d5893dca993.svg?style=logo&theme=light"
+              alt="Eco Tracker"
+              className="mx-auto rounded-md bg-white px-4 py-2"
+            />
+          </a>
           <a
             href={STATUS_URL}
             target="_blank"
