@@ -139,7 +139,7 @@ export default function Game() {
       setReward({ points: pts, isNew, invasive: entry.is_invasive, name: entry.common_name });
       if (isNew) {
         toast.success(`New species! ${entry.common_name}  +${pts} pts`);
-        if (entry.is_invasive) toast.warning('Invasive species — report it to help local ecosystems!');
+        if (entry.is_invasive) toast.warning('Invasive — you can remove it, so bonus points awarded!');
       } else {
         toast.success(`Rediscovered ${entry.common_name}  +${pts} pts`);
       }
@@ -284,7 +284,7 @@ export default function Game() {
               className="flex items-center justify-center gap-2 text-emerald-300 font-bold">
               <Flame className="h-5 w-5" />
               {reward.isNew ? `New discovery +${reward.points} pts!` : `Rediscovered +${reward.points} pts`}
-              {reward.invasive && <span className="text-pink-400">· invasive bonus</span>}
+              {reward.invasive && <span className="text-pink-400">· invasive — removable, bonus points!</span>}
             </motion.div>
           )}
         </AnimatePresence>

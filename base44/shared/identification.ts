@@ -31,13 +31,42 @@ export function fuzzCoordinates(lat, long, privateProperty) {
   };
 }
 
+// iNaturalist returns establishment_means in three different shapes depending
+// on the endpoint (computervision: string|null, taxa/autocomplete: object, some
+// legacy payloads: array). Normalize all of them to a lowercase string so the
+// downstream "introduced => invasive" check doesn't silently miss it.
+function normalizeEstablishmentMeans(val) {
+  if (!val) return null;
+  if (typeof val === 'string') return val.toLowerCase().trim();
+  if (Array.isArray(val)) {
+    const first = val[0];
+    if (typeof first === 'string') return first.toLowerCase().trim();
+    if (first && first.establishment_means) return String(first.establishment_means).toLowerCase().trim();
+    return null;
+  }
+  if (val.establishment_means) return String(val.establishment_means).toLowerCase().trim();
+  return null;
+}
+
+const normName = (s) => (s || '').toLowerCase().trim();
+
 export async function checkInvasive(base44, speciesName, establishmentMeans) {
   const isIntroduced = establishmentMeans === 'introduced';
   let onWatchlist = false;
   if (speciesName && speciesName !== 'Unknown') {
     try {
-      const matches = await base44.asServiceRole.entities.InvasiveWatchlist.filter({ species_name: speciesName });
-      onWatchlist = matches.length > 0;
+      // The watchlist is admin-curated and small, so load it once and match in
+      // JS. DB-side `filter({ species_name })` is an exact, case-sensitive match
+      // that missed entries stored under a different case or only under a
+      // common name — the most common reason invasive species went undetected.
+      const all = await base44.asServiceRole.entities.InvasiveWatchlist.filter({}, '-created_date', 500);
+      const s = normName(speciesName);
+      const genus = s.split(' ')[0];
+      onWatchlist = (all || []).some((m) => {
+        const wSci = normName(m.species_name);
+        const wCom = normName(m.common_name);
+        return wSci === s || wCom === s || wSci === genus;
+      });
     } catch (e) {
       onWatchlist = false;
     }
@@ -89,7 +118,7 @@ export async function primaryImageIdentification(file_url, lat, long) {
       species_name: top.taxon.name || 'Unknown',
       common_name: top.taxon.preferred_common_name || '',
       confidence_score: Math.round(top.combined_score || 0),
-      establishment_means: top.taxon.establishment_means || 'unknown',
+      establishment_means: normalizeEstablishmentMeans(top.taxon.establishment_means) || 'unknown',
     };
   } catch (e) {
     return { species_name: 'Unknown', common_name: '', confidence_score: 0, establishment_means: 'unknown' };
@@ -171,8 +200,18 @@ export async function fetchEstablishmentMeans(species_name, lat, long) {
       `https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(species_name)}&preferred_place_id=${placeId}&per_page=1`,
       10000
     );
-    const t = tr && tr.results && tr.results[0];
-    const means = (t && t.establishment_means && t.establishment_means.establishment_means) || (t && t.preferred_establishment_means);
+    let t = tr && tr.results && tr.results[0];
+    // Fallback: a global (place-less) lookup sometimes carries
+    // preferred_establishment_means when the place-scoped one doesn't.
+    if (!t || (!normalizeEstablishmentMeans(t.establishment_means) && !t.preferred_establishment_means)) {
+      const gr = await fetchJsonRetry(
+        `https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(species_name)}&per_page=1`,
+        10000
+      );
+      const g = gr && gr.results && gr.results[0];
+      if (g) t = g;
+    }
+    const means = normalizeEstablishmentMeans(t && t.establishment_means) || (t && t.preferred_establishment_means ? String(t.preferred_establishment_means).toLowerCase() : null);
     return VALID_ESTABLISHMENT_MEANS.includes(means) ? means : 'unknown';
   } catch (e) {
     return 'unknown';
