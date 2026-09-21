@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, ScanLine, MapPin, ShieldAlert, Mic, Camera, ArrowRight, Activity } from 'lucide-react';
+import { Leaf, ScanLine, MapPin, ShieldAlert, Mic, Camera, ArrowRight, Activity, Gamepad2 } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 export default function Splash() {
@@ -32,9 +32,13 @@ export default function Splash() {
             </p>
             <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
               <Link
-                to="/map"
+                to="/game"
                 className="bio-contact inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold no-underline">
-                
+                <Gamepad2 className="h-5 w-5" /> Play the BioDex game
+              </Link>
+              <Link
+                to="/map"
+                className="inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-bold border border-teal-400 text-teal-100 hover:bg-teal-500/15 transition-colors no-underline">
                 <MapPin className="h-5 w-5" /> Explore the map
               </Link>
               <Link

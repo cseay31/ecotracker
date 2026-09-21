@@ -1,0 +1,116 @@
+{
+  "name": "SpeciesCollection",
+  "type": "object",
+  "properties": {
+    "species_id": {
+      "type": "string"
+    },
+    "common_name": {
+      "type": "string"
+    },
+    "scientific_name": {
+      "type": "string"
+    },
+    "taxon_group": {
+      "type": "string",
+      "enum": [
+        "Mammal",
+        "Bird",
+        "Reptile",
+        "Amphibian",
+        "Fish",
+        "Invertebrate",
+        "Insect",
+        "Plant",
+        "Fungi"
+      ]
+    },
+    "biome": {
+      "type": "string",
+      "enum": [
+        "Forest",
+        "Wetland",
+        "Grassland",
+        "Urban",
+        "Coastal",
+        "Desert"
+      ]
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "common",
+        "uncommon",
+        "rare",
+        "legendary"
+      ]
+    },
+    "is_invasive": {
+      "type": "boolean",
+      "default": false
+    },
+    "establishment_means": {
+      "type": "string",
+      "enum": [
+        "native",
+        "introduced",
+        "endemic",
+        "unknown"
+      ]
+    },
+    "emoji": {
+      "type": "string"
+    },
+    "discovery_count": {
+      "type": "number",
+      "default": 1
+    },
+    "first_discovered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "species_id",
+    "common_name",
+    "taxon_group",
+    "biome",
+    "rarity"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

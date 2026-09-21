@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Leaf, ScanLine, User, MapPin, Shield, Activity, MessageSquare, Github } from 'lucide-react';
+import { Leaf, ScanLine, User, MapPin, Shield, Activity, MessageSquare, Github, Gamepad2, Trophy } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import Footer from '@/components/Footer';
 
@@ -13,8 +13,10 @@ export default function AppShell({ title, children }) {
       .catch(() => setIsAdmin(false));
   }, []);
   const nav = [
+    { to: '/game', label: 'Game', icon: Gamepad2, active: loc.pathname === '/game' },
     { to: '/map', label: 'Map', icon: MapPin, active: loc.pathname === '/map' },
     { to: '/scanner', label: 'Scan', icon: ScanLine, active: loc.pathname === '/scanner' },
+    { to: '/leaderboard', label: 'Ranks', icon: Trophy, active: loc.pathname === '/leaderboard' },
     { to: '/forums', label: 'Forum', icon: MessageSquare, active: loc.pathname === '/forums' },
     { to: '/open-source', label: 'Open Source', icon: Github, active: loc.pathname === '/open-source' },
     { to: '/profile', label: 'Profile', icon: User, active: loc.pathname === '/profile' },

@@ -31,6 +31,9 @@ import OpenSource from '@/pages/OpenSource';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
 import ConsentGate from '@/pages/ConsentGate';
+import Game from '@/pages/Game';
+import Collection from '@/pages/Collection';
+import Leaderboard from '@/pages/Leaderboard';
 import AdminRoute from '@/components/AdminRoute';
 // Add page imports here
 
@@ -88,6 +91,7 @@ const AuthenticatedApp = () => {
       <Route path="/connect" element={<Connect />} />
       <Route path="/forums" element={<Forums />} />
       <Route path="/open-source" element={<OpenSource />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
       <Route path="/onboarding" element={
         <ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />}>
           <Onboarding />
@@ -95,6 +99,8 @@ const AuthenticatedApp = () => {
       } />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         <Route path="/scanner" element={<Scanner />} />
+        <Route path="/game" element={<Game />} />
+        <Route path="/collection" element={<Collection />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/status" element={<Status />} />
         <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />

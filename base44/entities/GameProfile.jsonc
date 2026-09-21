@@ -1,0 +1,52 @@
+{
+  "name": "GameProfile",
+  "type": "object",
+  "properties": {
+    "display_name": {
+      "type": "string"
+    },
+    "total_points": {
+      "type": "number",
+      "default": 0
+    },
+    "unique_species_count": {
+      "type": "number",
+      "default": 0
+    },
+    "total_sightings": {
+      "type": "number",
+      "default": 0
+    },
+    "current_streak": {
+      "type": "number",
+      "default": 0
+    },
+    "best_streak": {
+      "type": "number",
+      "default": 0
+    },
+    "tier": {
+      "type": "string",
+      "default": "Sprout"
+    },
+    "last_played": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "display_name"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}
