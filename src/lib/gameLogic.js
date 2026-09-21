@@ -18,35 +18,43 @@ export function tierForPoints(points) {
   return tier;
 }
 
-export function pointsForNewDiscovery(species) {
-  let pts = RARITY[species.rarity].basePoints;
-  if (species.is_invasive) pts *= 2; // invasive = legendary-tier bonus
-  return pts;
+// Points for adding a real, photographed species to your collection.
+export function pointsForRealDiscovery({ rarity, is_invasive }) {
+  let base = (RARITY[rarity] && RARITY[rarity].basePoints) || 50;
+  if (is_invasive) base *= 2; // invasive = bonus "dangerous" find
+  return base;
 }
 
-export const REPEAT_POINTS = 5;
+export const REPEAT_POINTS = 10;
 
-// Weighted random encounter within a biome. Invasive species get a small extra
-// rarity bump so they feel like special "dangerous" finds.
-export function pickEncounter(biome) {
-  const pool = SPECIES.filter((s) => s.biome === biome);
-  if (pool.length === 0) return null;
-  const weighted = pool.map((s) => {
-    let w = RARITY[s.rarity].weight;
-    if (s.is_invasive) w = Math.max(2, Math.round(w * 0.6)); // invasive = rarer
-    return { s, w };
-  });
-  const total = weighted.reduce((a, b) => a + b.w, 0);
-  let r = Math.random() * total;
-  for (const { s, w } of weighted) {
-    r -= w;
-    if (r <= 0) return s;
+// Try to match an identified observation to the curated regional dex (by
+// scientific or common name). Returns the curated species for emoji/rarity,
+// or null for species outside the curated list.
+export function matchCurated(obs) {
+  const sci = (obs.scientific_name || obs.species_name || "").toLowerCase().trim();
+  const com = (obs.common_name || "").toLowerCase().trim();
+  for (const s of SPECIES) {
+    if (sci && s.scientific_name.toLowerCase() === sci) return s;
+    if (com && s.common_name.toLowerCase() === com) return s;
   }
-  return pool[0];
+  return null;
 }
 
-export function biomeSpeciesCount(biome) {
-  return SPECIES.filter((s) => s.biome === biome).length;
+// Build a collection entry shape from an identification result.
+export function collectionFromObservation(obs) {
+  const curated = matchCurated(obs);
+  const isInv = !!obs.is_invasive;
+  return {
+    species_id: (obs.species_name || obs.common_name || "unknown").toLowerCase(),
+    common_name: obs.common_name || obs.species_name || "Unknown species",
+    scientific_name: obs.species_name || "",
+    taxon_group: curated ? curated.taxon_group : undefined,
+    biome: curated ? curated.biome : undefined,
+    rarity: curated ? curated.rarity : (isInv ? "rare" : "common"),
+    is_invasive: isInv,
+    establishment_means: obs.establishment_means || "unknown",
+    emoji: curated ? curated.emoji : "🐾",
+  };
 }
 
 export { TOTAL_DEX };

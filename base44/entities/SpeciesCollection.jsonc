@@ -43,7 +43,8 @@
         "uncommon",
         "rare",
         "legendary"
-      ]
+      ],
+      "default": "common"
     },
     "is_invasive": {
       "type": "boolean",
@@ -61,6 +62,12 @@
     "emoji": {
       "type": "string"
     },
+    "media_url": {
+      "type": "string"
+    },
+    "best_confidence": {
+      "type": "number"
+    },
     "discovery_count": {
       "type": "number",
       "default": 1
@@ -76,10 +83,7 @@
   },
   "required": [
     "species_id",
-    "common_name",
-    "taxon_group",
-    "biome",
-    "rarity"
+    "common_name"
   ],
   "rls": {
     "read": {
