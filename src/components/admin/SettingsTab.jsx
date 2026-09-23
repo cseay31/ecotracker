@@ -9,8 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-
-const DEFAULT_FLAGS = { photo_gallery: true, forums: true };
+import { DEFAULT_FEATURE_FLAGS as DEFAULT_FLAGS } from '@/hooks/useFeatureFlags';
 
 export default function SettingsTab() {
   const [setting, setSetting] = useState(null);

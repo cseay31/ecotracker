@@ -2,8 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Leaf, ScanLine, MapPin, ShieldAlert, Mic, Camera, ArrowRight, Activity } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 export default function Splash() {
+  const { flags } = useFeatureFlags();
+  const audioEnabled = flags.audio_enabled !== false;
   return (
     <div className="bio-app flex flex-col min-h-screen">
       <div className="bio-shell flex flex-col flex-1">
@@ -24,9 +27,9 @@ export default function Splash() {
               <Activity className="h-4 w-4" /> Biodiversity intelligence
             </div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-teal-50 leading-tight">
-              Track wildlife with <span className="text-emerald-400">AI vision &amp; sound</span>
+              Track wildlife with <span className="text-emerald-400">AI vision{audioEnabled ? ' & sound' : ''}</span>
             </h1>
-            <p className="mt-5 text-base sm:text-lg text-teal-200/80 leading-relaxed">Identify species from a photo or recording, map observations across the wild, and catch invasive threats early — all in one open source, community platform.
+            <p className="mt-5 text-base sm:text-lg text-teal-200/80 leading-relaxed">Identify species from a photo{audioEnabled ? ' or recording' : ''}, map observations across the wild, and catch invasive threats early — all in one open source, community platform.
 
 
             </p>
@@ -54,7 +57,7 @@ export default function Splash() {
         <section className="px-4 pb-12 max-w-4xl mx-auto w-full">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Feature icon={Camera} title="AI photo ID" body="Snap a plant or animal and our vision model names the species with a confidence score." />
-            <Feature icon={Mic} title="Bioacoustic ID" body="Record birdsong and a BirdNET-powered engine identifies the call — no key required." />
+            {audioEnabled && <Feature icon={Mic} title="Bioacoustic ID" body="Record birdsong and a BirdNET-powered engine identifies the call — no key required." />}
             <Feature icon={MapPin} title="Community map" body="Browse observations worldwide on an interactive map, layered with iNaturalist data." />
             <Feature icon={ShieldAlert} title="Invasive alerts" body="Automatic checks flag introduced and watchlisted species so threats get reported fast." />
           </div>

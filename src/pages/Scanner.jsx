@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import AppShell from '@/components/AppShell';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,14 @@ export default function Scanner() {
   const chunksRef = useRef([]);
   const fileInputRef = useRef(null);
   const audioInputRef = useRef(null);
+
+  const { flags } = useFeatureFlags();
+  const audioEnabled = flags.audio_enabled !== false;
+
+  // If audio has been disabled app-wide, never let the user sit on the Audio tab.
+  useEffect(() => {
+    if (!audioEnabled && mode === 'audio') setMode('image');
+  }, [audioEnabled, mode]);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -128,9 +137,11 @@ export default function Scanner() {
     <AppShell title="Scanner">
       <div className="flex-1 p-4 space-y-4 max-w-lg mx-auto w-full">
         <Tabs value={mode} onValueChange={setMode}>
-          <TabsList className="grid grid-cols-2 w-full">
+          <TabsList className={`grid w-full ${audioEnabled ? 'grid-cols-2' : 'grid-cols-1'}`}>
             <TabsTrigger value="image" className="flex items-center gap-2"><Camera className="h-4 w-4" /> Photo</TabsTrigger>
-            <TabsTrigger value="audio" className="flex items-center gap-2"><Mic className="h-4 w-4" /> Audio</TabsTrigger>
+            {audioEnabled && (
+              <TabsTrigger value="audio" className="flex items-center gap-2"><Mic className="h-4 w-4" /> Audio</TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
 
