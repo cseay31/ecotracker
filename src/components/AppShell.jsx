@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Leaf, ScanLine, User, MapPin, Shield, Activity, MessageSquare, Github } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import Footer from '@/components/Footer';
+import { motion } from 'framer-motion';
 
 export default function AppShell({ title, children }) {
   const loc = useLocation();
@@ -46,11 +47,28 @@ export default function AppShell({ title, children }) {
           </Link>
           <span className="bio-dot" />
         </header>
-        <main className="flex-1 flex flex-col">{children}<Footer /></main>
+        <motion.main
+          key={loc.pathname}
+          className="flex-1 flex flex-col"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {children}<Footer />
+        </motion.main>
         <nav className="bio-nav sticky bottom-0 z-30 flex">
           {nav.map((n) => (
-            <Link key={n.to} to={n.to} className={`bio-navitem ${n.active ? 'is-active' : ''}`}>
-              <n.icon className="h-5 w-5" />
+            <Link key={n.to} to={n.to} className={`bio-navitem relative ${n.active ? 'is-active' : ''}`}>
+              {n.active && (
+                <motion.span
+                  layoutId="nav-active"
+                  className="absolute top-0 left-1/4 right-1/4 h-0.5 rounded-full bg-emerald-400"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+              <motion.span whileHover={{ y: -2 }} whileTap={{ scale: 0.85 }}>
+                <n.icon className="h-5 w-5" />
+              </motion.span>
               {n.label}
             </Link>
           ))}

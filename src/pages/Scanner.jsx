@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Camera, Mic, Loader2, MapPin, WifiOff, CheckCircle2, AlertTriangle, Info, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const OFFLINE_KEY = 'ecotracker_offline_queue';
 
@@ -219,7 +220,15 @@ export default function Scanner() {
           </>
         )}
 
+        <AnimatePresence>
         {result?.observation && (
+          <motion.div
+            key={result.observation.id || 'result'}
+            initial={{ opacity: 0, scale: 0.92, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+          >
           <Card className="p-4 space-y-3 border-2 border-green-500">
             <div className="flex items-center gap-2 text-green-600 font-medium">
               <CheckCircle2 className="h-5 w-5" /> Identification complete
@@ -240,7 +249,9 @@ export default function Scanner() {
               </div>
             )}
           </Card>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </AppShell>
   );
